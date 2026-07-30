@@ -31,8 +31,10 @@ const worker = {
     const url = new URL(request.url);
 
     if (url.pathname === BASE_PATH) {
-      url.pathname = `${BASE_PATH}/`;
-      return Response.redirect(url.toString(), 308);
+      return new Response(null, {
+        status: 308,
+        headers: { Location: `${BASE_PATH}/${url.search}` },
+      });
     }
 
     if (url.pathname === "/_vinext/image") {
