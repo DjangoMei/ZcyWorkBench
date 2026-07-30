@@ -16,6 +16,7 @@ import {
   cleanExpiredReminders,
   cleanWeeklyRoutines,
 } from "../lib/cleanup.mjs";
+import { withBasePath } from "./base-path";
 
 type Section =
   | "today"
@@ -139,6 +140,7 @@ type WorkbenchData = {
 };
 
 type StorageState = "connecting" | "saved" | "saving" | "offline";
+type StorageBackend = "api" | "browser";
 
 type WeatherState = {
   temperature: number;
@@ -149,6 +151,7 @@ type WeatherState = {
 } | null;
 
 const LOCAL_API = "http://127.0.0.1:4174";
+const BROWSER_STORAGE_KEY = "zcy-personal-workbench-v1";
 const attendanceTypes: AttendanceType[] = [
   "迟到",
   "调休",
@@ -448,7 +451,9 @@ function DreamButterfly({ small = false }: { small?: boolean }) {
       aria-hidden="true"
     >
       <img
-        src={small ? "/butterfly-lower.png" : "/butterfly-upper.png"}
+        src={withBasePath(
+          small ? "/butterfly-lower.png" : "/butterfly-upper.png",
+        )}
         alt=""
       />
     </span>
@@ -461,6 +466,8 @@ export default function Home() {
   const [clock, setClock] = useState<Date | null>(null);
   const [weather, setWeather] = useState<WeatherState>(null);
   const [storage, setStorage] = useState<StorageState>("connecting");
+  const [storageBackend, setStorageBackend] =
+    useState<StorageBackend>("api");
   const [storageMessage, setStorageMessage] = useState("正在连接个人资料库");
   const [ready, setReady] = useState(false);
   const [inspirationCategory, setInspirationCategory] =
@@ -551,7 +558,7 @@ export default function Home() {
           0;
 
         if (!hasServerData) {
-          const legacy = window.localStorage.getItem("zcy-personal-workbench-v1");
+          const legacy = window.localStorage.getItem(BROWSER_STORAGE_KEY);
           if (legacy) {
             const migrated = normalizeData(JSON.parse(legacy));
             await fetch(`${LOCAL_API}/api/data`, {
@@ -559,7 +566,7 @@ export default function Home() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(migrated),
             });
-            window.localStorage.removeItem("zcy-personal-workbench-v1");
+            window.localStorage.removeItem(BROWSER_STORAGE_KEY);
             if (!cancelled) setData(migrated);
           } else if (!cancelled) {
             setData(serverData);
@@ -575,8 +582,17 @@ export default function Home() {
       })
       .catch(() => {
         if (!cancelled) {
-          setStorage("offline");
-          setStorageMessage("本地资料服务未连接");
+          const browserData = window.localStorage.getItem(BROWSER_STORAGE_KEY);
+          if (browserData) {
+            try {
+              setData(normalizeData(JSON.parse(browserData)));
+            } catch {
+              window.localStorage.removeItem(BROWSER_STORAGE_KEY);
+            }
+          }
+          setStorageBackend("browser");
+          setStorage("saved");
+          setStorageMessage("已保存在此浏览器");
         }
       })
       .finally(() => {
@@ -589,6 +605,24 @@ export default function Home() {
 
   useEffect(() => {
     if (!ready) return;
+
+    if (storageBackend === "browser") {
+      const timer = window.setTimeout(() => {
+        try {
+          window.localStorage.setItem(
+            BROWSER_STORAGE_KEY,
+            JSON.stringify(data),
+          );
+          setStorage("saved");
+          setStorageMessage("已保存在此浏览器");
+        } catch {
+          setStorage("offline");
+          setStorageMessage("浏览器存储空间不足");
+        }
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+
     setStorage("saving");
     setStorageMessage("正在写入电脑");
     const timer = window.setTimeout(() => {
@@ -603,12 +637,22 @@ export default function Home() {
           setStorageMessage("已保存到电脑 · 个人资料库");
         })
         .catch(() => {
-          setStorage("offline");
-          setStorageMessage("保存失败，请重新启动日程台");
+          try {
+            window.localStorage.setItem(
+              BROWSER_STORAGE_KEY,
+              JSON.stringify(data),
+            );
+            setStorageBackend("browser");
+            setStorage("saved");
+            setStorageMessage("已切换为浏览器存储");
+          } catch {
+            setStorage("offline");
+            setStorageMessage("保存失败");
+          }
         });
     }, 320);
     return () => window.clearTimeout(timer);
-  }, [data, ready]);
+  }, [data, ready, storageBackend]);
 
   useEffect(() => {
     if (!toast) return;
@@ -1134,8 +1178,11 @@ export default function Home() {
     let imageName = "";
     try {
       if (image instanceof File && image.size) {
+        if (storageBackend === "browser") {
+          throw new Error("浏览器存储模式暂不支持图片上传。");
+        }
         if (storage === "offline") {
-          throw new Error("请先重新启动日程台，连接本地资料库后再上传图片。");
+          throw new Error("请先连接本地资料库后再上传图片。");
         }
         const response = await fetch(
           `${LOCAL_API}/api/upload?name=${encodeURIComponent(image.name)}`,
@@ -1182,6 +1229,53 @@ export default function Home() {
 
   const exportInspirations = async (format: "json" | "markdown") => {
     try {
+      if (storageBackend === "browser") {
+        const filename =
+          format === "markdown" ? "灵感碎片.md" : "灵感碎片.json";
+        const content =
+          format === "markdown"
+            ? [
+                "# 灵感碎片导出",
+                "",
+                ...data.inspirations.map((item, index) =>
+                  [
+                    `## ${index + 1}. ${item.category} · ${item.tag || "无标签"}`,
+                    "",
+                    item.content,
+                    item.link ? `- 链接：${item.link}` : "",
+                    `- 创建时间：${item.createdAt}`,
+                    "",
+                  ]
+                    .filter(Boolean)
+                    .join("\n"),
+                ),
+              ].join("\n")
+            : `${JSON.stringify(
+                {
+                  exportedAt: new Date().toISOString(),
+                  format: "zcy-inspiration-v1",
+                  inspirations: data.inspirations,
+                },
+                null,
+                2,
+              )}\n`;
+        const url = URL.createObjectURL(
+          new Blob([content], {
+            type:
+              format === "markdown"
+                ? "text/markdown;charset=utf-8"
+                : "application/json;charset=utf-8",
+          }),
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+        setToast(`已导出 ${filename}`);
+        return;
+      }
+
       const response = await fetch(`${LOCAL_API}/api/export`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

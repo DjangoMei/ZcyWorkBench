@@ -1,6 +1,7 @@
 import vinext from "vinext";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import hostingConfig from "./.openai/hosting.json";
+import { BASE_PATH } from "./app/base-path";
 import { sites } from "./build/sites-vite-plugin";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
@@ -10,6 +11,27 @@ const { d1, r2 } = hostingConfig;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
+const enableHotReload = process.env.ZCY_WORKBENCH_ENABLE_HMR === "true";
+
+function basePathRedirect(): Plugin {
+  return {
+    name: "base-path-redirect",
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const requestUrl = new URL(request.url ?? "/", "http://localhost");
+
+        if (requestUrl.pathname !== BASE_PATH) {
+          next();
+          return;
+        }
+
+        response.statusCode = 308;
+        response.setHeader("Location", `${BASE_PATH}/${requestUrl.search}`);
+        response.end();
+      });
+    },
+  };
+}
 
 const localBindingConfig = {
   main: "./worker/index.ts",
@@ -45,11 +67,14 @@ export default defineConfig(async () => {
 
   return {
     server: {
+      allowedHosts: ["djangomei.com", "www.djangomei.com"],
+      hmr: enableHotReload,
       ...(isCodexSeatbeltSandbox
         ? { watch: { useFsEvents: false, usePolling: true } }
         : {}),
     },
     plugins: [
+      basePathRedirect(),
       vinext(),
       sites(),
       cloudflare({

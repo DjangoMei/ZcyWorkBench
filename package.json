@@ -6,10 +6,11 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vinext dev --hostname 127.0.0.1 --port 777",
+    "dev": "node scripts/serve-stable.mjs",
+    "dev:hot": "node scripts/serve-hot.mjs --hostname 127.0.0.1 --port 777",
     "data-server": "node local-data-server.mjs",
     "build": "vinext build",
-    "start": "vinext start",
+    "start": "node scripts/serve-stable.mjs",
     "test": "vinext build && node --test tests/*.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"

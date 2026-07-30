@@ -1,4 +1,5 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
+import { BASE_PATH } from "../app/base-path";
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 
@@ -28,6 +29,11 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    if (url.pathname === BASE_PATH) {
+      url.pathname = `${BASE_PATH}/`;
+      return Response.redirect(url.toString(), 308);
+    }
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];

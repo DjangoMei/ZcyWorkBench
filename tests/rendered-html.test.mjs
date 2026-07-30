@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 async function render() {
@@ -7,7 +8,7 @@ async function render() {
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
-    new Request("http://localhost/", {
+    new Request("http://localhost/ZcyWorkBench/", {
       headers: { accept: "text/html", host: "localhost" },
     }),
     {
@@ -42,4 +43,19 @@ test("renders the finished personal schedule dashboard", async () => {
   assert.match(html, /一句话记下此刻的想法/);
   assert.doesNotMatch(html, /今天也按自己的节奏，慢慢完成/);
   assert.doesNotMatch(html, /codex-preview|Building your site/);
+});
+
+test("packages and serves the app under /ZcyWorkBench", async () => {
+  const [config, page, layout, headers] = await Promise.all([
+    readFile(new URL("../next.config.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../dist/client/_headers", import.meta.url), "utf8"),
+    access(new URL("../dist/client/ZcyWorkBench/assets", import.meta.url)),
+  ]);
+
+  assert.match(config, /basePath:\s*BASE_PATH/);
+  assert.match(page, /withBasePath\(/);
+  assert.match(layout, /\$\{BASE_PATH\}\/og\.png/);
+  assert.match(headers, /\/ZcyWorkBench\/assets\/\*/);
 });
