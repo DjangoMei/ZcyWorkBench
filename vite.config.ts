@@ -1,7 +1,7 @@
 import vinext from "vinext";
 import { defineConfig, type Plugin } from "vite";
 import hostingConfig from "./.openai/hosting.json";
-import { BASE_PATH } from "./app/base-path";
+import { canonicalizeBasePath } from "./app/base-path";
 import { sites } from "./build/sites-vite-plugin";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
@@ -19,14 +19,15 @@ function basePathRedirect(): Plugin {
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const requestUrl = new URL(request.url ?? "/", "http://localhost");
+        const canonicalPath = canonicalizeBasePath(requestUrl.pathname);
 
-        if (requestUrl.pathname !== BASE_PATH) {
+        if (!canonicalPath) {
           next();
           return;
         }
 
         response.statusCode = 308;
-        response.setHeader("Location", `${BASE_PATH}/${requestUrl.search}`);
+        response.setHeader("Location", `${canonicalPath}${requestUrl.search}`);
         response.end();
       });
     },

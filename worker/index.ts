@@ -1,5 +1,5 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
-import { BASE_PATH } from "../app/base-path";
+import { canonicalizeBasePath } from "../app/base-path";
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 
@@ -29,11 +29,12 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    const canonicalPath = canonicalizeBasePath(url.pathname);
 
-    if (url.pathname === BASE_PATH) {
+    if (canonicalPath) {
       return new Response(null, {
         status: 308,
-        headers: { Location: `${BASE_PATH}/${url.search}` },
+        headers: { Location: `${canonicalPath}${url.search}` },
       });
     }
 

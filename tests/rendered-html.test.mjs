@@ -46,8 +46,9 @@ test("renders the finished personal schedule dashboard", async () => {
 });
 
 test("packages and serves the app under /ZcyWorkBench", async () => {
-  const [config, page, layout, worker, headers] = await Promise.all([
+  const [config, basePath, page, layout, worker, headers] = await Promise.all([
     readFile(new URL("../next.config.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/base-path.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../worker/index.ts", import.meta.url), "utf8"),
@@ -56,8 +57,10 @@ test("packages and serves the app under /ZcyWorkBench", async () => {
   ]);
 
   assert.match(config, /basePath:\s*BASE_PATH/);
+  assert.match(basePath, /LOWERCASE_BASE_PATH\s*=\s*BASE_PATH\.toLowerCase\(\)/);
+  assert.match(basePath, /pathname\.startsWith\(`\$\{LOWERCASE_BASE_PATH\}\//);
   assert.match(page, /withBasePath\(/);
   assert.match(layout, /\$\{BASE_PATH\}\/og\.png/);
-  assert.match(worker, /Location:\s*`\$\{BASE_PATH\}\/\$\{url\.search\}`/);
+  assert.match(worker, /Location:\s*`\$\{canonicalPath\}\$\{url\.search\}`/);
   assert.match(headers, /\/ZcyWorkBench\/assets\/\*/);
 });
