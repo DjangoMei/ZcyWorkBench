@@ -10,13 +10,13 @@
 pnpm install
 ```
 
-默认地址为 [http://localhost:777/](http://localhost:777/)。启动器会同时运行网页和本地资料服务。
+默认地址为 [http://localhost:777/zcyworkbench/](http://localhost:777/zcyworkbench/)。启动器会同时运行网页和本地资料服务。
 
 ## 在线访问
 
 工作台部署在个人主页的子路径：
 
-[https://djangomei.com/ZcyWorkBench/](https://djangomei.com/ZcyWorkBench/)
+[https://djangomei.com/zcyworkbench/](https://djangomei.com/zcyworkbench/)
 
 在线访问时，日程与项目等内容仅保存在当前浏览器，不会公开上传到网站服务器；本地启动时仍使用 `个人资料库/`。
 

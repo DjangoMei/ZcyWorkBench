@@ -12,8 +12,8 @@ $NodeExe = if ($NodeCommand) {
 }
 $VinextCli = Join-Path $ProjectRoot "node_modules\vinext\dist\cli.js"
 $LogRoot = Join-Path $ProjectRoot ".logs"
-$WebUrl = "http://localhost:777/"
-$WebHealthUrl = "http://127.0.0.1:777/"
+$WebUrl = "http://localhost:777/zcyworkbench/"
+$WebHealthUrl = "http://127.0.0.1:777/zcyworkbench/"
 $DataUrl = "http://127.0.0.1:4174/api/data"
 
 New-Item -ItemType Directory -Path $LogRoot -Force | Out-Null

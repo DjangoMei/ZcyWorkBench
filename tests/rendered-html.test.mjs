@@ -8,7 +8,7 @@ async function render() {
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
-    new Request("http://localhost/ZcyWorkBench/", {
+    new Request("http://localhost/zcyworkbench/", {
       headers: { accept: "text/html", host: "localhost" },
     }),
     {
@@ -45,7 +45,7 @@ test("renders the finished personal schedule dashboard", async () => {
   assert.doesNotMatch(html, /codex-preview|Building your site/);
 });
 
-test("packages and serves the app under /ZcyWorkBench", async () => {
+test("packages and serves the app under /zcyworkbench", async () => {
   const [config, basePath, page, layout, worker, headers] = await Promise.all([
     readFile(new URL("../next.config.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/base-path.ts", import.meta.url), "utf8"),
@@ -53,14 +53,15 @@ test("packages and serves the app under /ZcyWorkBench", async () => {
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../worker/index.ts", import.meta.url), "utf8"),
     readFile(new URL("../dist/client/_headers", import.meta.url), "utf8"),
-    access(new URL("../dist/client/ZcyWorkBench/assets", import.meta.url)),
+    access(new URL("../dist/client/zcyworkbench/assets", import.meta.url)),
   ]);
 
   assert.match(config, /basePath:\s*BASE_PATH/);
-  assert.match(basePath, /LOWERCASE_BASE_PATH\s*=\s*BASE_PATH\.toLowerCase\(\)/);
-  assert.match(basePath, /pathname\.startsWith\(`\$\{LOWERCASE_BASE_PATH\}\//);
+  assert.match(basePath, /BASE_PATH\s*=\s*"\/zcyworkbench"/);
+  assert.match(basePath, /LEGACY_BASE_PATH\s*=\s*"\/ZcyWorkBench"/);
+  assert.match(basePath, /pathname\.startsWith\(`\$\{LEGACY_BASE_PATH\}\//);
   assert.match(page, /withBasePath\(/);
   assert.match(layout, /\$\{BASE_PATH\}\/og\.png/);
   assert.match(worker, /Location:\s*`\$\{canonicalPath\}\$\{url\.search\}`/);
-  assert.match(headers, /\/ZcyWorkBench\/assets\/\*/);
+  assert.match(headers, /\/zcyworkbench\/assets\/\*/);
 });
