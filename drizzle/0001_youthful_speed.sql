@@ -1,0 +1,1 @@
+CREATE INDEX `idx_remote_backups_expires_at` ON `remote_backups` (`expires_at`);
