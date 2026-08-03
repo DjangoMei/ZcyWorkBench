@@ -18,6 +18,8 @@ interface Env {
 
 const SYNC_PATH = "/zcyworkbench/api/sync";
 const SYNC_FILE_PATH = `${SYNC_PATH}/file/`;
+const SYNC_SESSION_PATH = `${SYNC_PATH}/session`;
+const SYNC_COOKIE = "zcy_sync_session";
 const SYNC_TOKEN_SHA256 =
   "20e43bc9534a66ce31cbce6d2f2d4eb9dcff5a84fee45036ef14d997c9d652f3";
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
@@ -40,11 +42,22 @@ async function sha256(value: string): Promise<string> {
     .join("");
 }
 
-async function isAuthorized(request: Request): Promise<boolean> {
+function requestToken(request: Request): string {
   const authorization = request.headers.get("Authorization") || "";
-  const token = authorization.startsWith("Bearer ")
+  const bearer = authorization.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length)
     : "";
+  if (bearer) return bearer;
+  const cookie = request.headers.get("Cookie") || "";
+  const value = cookie
+    .split(";")
+    .map((part) => part.trim().split("="))
+    .find(([name]) => name === SYNC_COOKIE)?.[1];
+  return value ? decodeURIComponent(value) : "";
+}
+
+async function isAuthorized(request: Request): Promise<boolean> {
+  const token = requestToken(request);
   return token.length >= 32 && (await sha256(token)) === SYNC_TOKEN_SHA256;
 }
 
@@ -89,6 +102,18 @@ async function handleSync(request: Request, env: Env): Promise<Response> {
   }
 
   const url = new URL(request.url);
+  if (url.pathname === SYNC_SESSION_PATH) {
+    if (request.method !== "POST") {
+      return json({ error: "Method not allowed" }, 405);
+    }
+    const response = json({ ok: true });
+    response.headers.append(
+      "Set-Cookie",
+      `${SYNC_COOKIE}=${encodeURIComponent(requestToken(request))}; Path=/zcyworkbench; HttpOnly; Secure; SameSite=Strict; Max-Age=31536000`,
+    );
+    return response;
+  }
+
   if (url.pathname.startsWith(SYNC_FILE_PATH)) {
     const key = safeRemoteFileKey(url);
     if (!key) return json({ error: "Invalid file path" }, 400);
@@ -194,6 +219,7 @@ const worker = {
 
     if (
       url.pathname === SYNC_PATH ||
+      url.pathname === SYNC_SESSION_PATH ||
       url.pathname.startsWith(SYNC_FILE_PATH)
     ) {
       return handleSync(request, env);

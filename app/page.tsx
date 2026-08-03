@@ -140,7 +140,7 @@ type WorkbenchData = {
 };
 
 type StorageState = "connecting" | "saved" | "saving" | "offline";
-type StorageBackend = "api" | "browser";
+type StorageBackend = "api" | "remote" | "browser";
 
 type WeatherState = {
   temperature: number;
@@ -151,6 +151,7 @@ type WeatherState = {
 } | null;
 
 const LOCAL_API = "http://127.0.0.1:4174";
+const REMOTE_API = withBasePath("/api/sync");
 const BROWSER_STORAGE_KEY = "zcy-personal-workbench-v1";
 const attendanceTypes: AttendanceType[] = [
   "迟到",
@@ -545,10 +546,36 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${LOCAL_API}/api/data`)
+    const isRemote = !["localhost", "127.0.0.1"].includes(
+      window.location.hostname,
+    );
+
+    const connectRemoteSession = async () => {
+      const fragment = new URLSearchParams(window.location.hash.slice(1));
+      const token = fragment.get("sync");
+      if (!token) return;
+      const response = await fetch(`${REMOTE_API}/session`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("remote session unavailable");
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `${window.location.pathname}${window.location.search}`,
+      );
+    };
+
+    const source = isRemote ? REMOTE_API : `${LOCAL_API}/api/data`;
+    connectRemoteSession()
+      .then(() => fetch(source))
       .then(async (response) => {
-        if (!response.ok) throw new Error("local storage unavailable");
-        const saved = (await response.json()) as Partial<WorkbenchData>;
+        if (!response.ok) throw new Error("storage unavailable");
+        const result = (await response.json()) as
+          | Partial<WorkbenchData>
+          | { data: Partial<WorkbenchData> };
+        const saved =
+          "data" in result && result.data ? result.data : result;
         const serverData = normalizeData(saved);
         const hasServerData =
           serverData.projects.length +
@@ -557,7 +584,7 @@ export default function Home() {
             serverData.inspirations.length >
           0;
 
-        if (!hasServerData) {
+        if (!isRemote && !hasServerData) {
           const legacy = window.localStorage.getItem(BROWSER_STORAGE_KEY);
           if (legacy) {
             const migrated = normalizeData(JSON.parse(legacy));
@@ -576,8 +603,13 @@ export default function Home() {
         }
 
         if (!cancelled) {
+          setStorageBackend(isRemote ? "remote" : "api");
           setStorage("saved");
-          setStorageMessage("已保存到电脑 · 个人资料库");
+          setStorageMessage(
+            isRemote
+              ? "已连接远端资料库"
+              : "已保存到电脑 · 个人资料库",
+          );
         }
       })
       .catch(() => {
@@ -624,9 +656,11 @@ export default function Home() {
     }
 
     setStorage("saving");
-    setStorageMessage("正在写入电脑");
+    setStorageMessage(
+      storageBackend === "remote" ? "正在同步远端" : "正在写入电脑",
+    );
     const timer = window.setTimeout(() => {
-      fetch(`${LOCAL_API}/api/data`, {
+      fetch(storageBackend === "remote" ? REMOTE_API : `${LOCAL_API}/api/data`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -634,7 +668,11 @@ export default function Home() {
         .then((response) => {
           if (!response.ok) throw new Error("save failed");
           setStorage("saved");
-          setStorageMessage("已保存到电脑 · 个人资料库");
+          setStorageMessage(
+            storageBackend === "remote"
+              ? "已同步到远端资料库"
+              : "已保存到电脑 · 个人资料库",
+          );
         })
         .catch(() => {
           try {
