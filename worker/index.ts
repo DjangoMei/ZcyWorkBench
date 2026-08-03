@@ -21,7 +21,7 @@ const SYNC_FILE_PATH = `${SYNC_PATH}/file/`;
 const SYNC_SESSION_PATH = `${SYNC_PATH}/session`;
 const SYNC_COOKIE_NAME = "zcy_sync_session";
 const SYNC_TOKEN_SHA256 =
-  "20e43bc9534a66ce31cbce6d2f2d4eb9dcff5a84fee45036ef14d997c9d652f3";
+  "60e05bd1b195af2f94112fa7197a5c88289058840ce7c6df9693756bc6250f55";
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
