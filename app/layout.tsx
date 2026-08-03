@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
     requestHeaders.get("x-forwarded-proto") ||
     (host.startsWith("localhost") ? "http" : "https");
   const previewImage = `${protocol}://${host}${BASE_PATH}/og.png`;
-  const description = "保存在电脑本地的日程、项目、广播音乐与灵感资料库。";
+  const description = "自动保存到云端的日程、项目、广播音乐与灵感资料库。";
 
   return {
     title: "我的日程台",

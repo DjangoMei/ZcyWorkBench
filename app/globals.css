@@ -79,6 +79,128 @@ select {
   min-width: 0;
 }
 
+.cloud-gate-shell {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(245, 248, 245, 0.74);
+  backdrop-filter: blur(16px);
+}
+
+.cloud-gate-card {
+  width: min(100%, 430px);
+  padding: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow);
+  text-align: center;
+  backdrop-filter: blur(28px);
+}
+
+.cloud-gate-mark {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 22px;
+  border-radius: 20px;
+  color: white;
+  background: linear-gradient(145deg, #3f735e, #74a98b);
+  box-shadow: 0 14px 32px rgba(63, 115, 94, 0.24);
+  font-family: "LXGW WenKai", "霞鹜文楷", serif;
+  font-size: 24px;
+}
+
+.cloud-gate-card h1 {
+  margin: 8px 0 10px;
+  font-family: "LXGW WenKai", "霞鹜文楷", serif;
+  font-size: 34px;
+  font-weight: 500;
+}
+
+.cloud-gate-card p {
+  margin: 0 auto 22px;
+  color: var(--ink-soft);
+  line-height: 1.75;
+}
+
+.cloud-unlock-form {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.cloud-unlock-form label {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cloud-unlock-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(65, 94, 82, 0.16);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.cloud-unlock-form input:focus {
+  border-color: rgba(55, 97, 80, 0.48);
+  box-shadow: 0 0 0 3px rgba(92, 139, 113, 0.12);
+}
+
+.cloud-unlock-form .primary-button,
+.cloud-gate-card > .primary-button {
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 16px;
+}
+
+.cloud-gate-note,
+.cloud-gate-error {
+  display: block;
+  margin-top: 16px;
+  line-height: 1.6;
+}
+
+.cloud-gate-note {
+  color: #7b8c83;
+}
+
+.cloud-gate-error {
+  color: #b45d4d;
+}
+
+.cloud-loading-bar {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(92, 139, 113, 0.12);
+}
+
+.cloud-loading-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5c8b71, #91c8e4);
+  animation: cloud-loading 1.2s ease-in-out infinite;
+}
+
+@keyframes cloud-loading {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(260%); }
+}
+
 .app-shell {
   height: 100vh;
   display: grid;

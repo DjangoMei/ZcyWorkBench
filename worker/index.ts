@@ -19,18 +19,19 @@ interface Env {
 const SYNC_PATH = "/zcyworkbench/api/sync";
 const SYNC_FILE_PATH = `${SYNC_PATH}/file/`;
 const SYNC_SESSION_PATH = `${SYNC_PATH}/session`;
-const SYNC_COOKIE = "zcy_sync_session";
+const SYNC_COOKIE_NAME = "zcy_sync_session";
 const SYNC_TOKEN_SHA256 =
   "20e43bc9534a66ce31cbce6d2f2d4eb9dcff5a84fee45036ef14d997c9d652f3";
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
-function json(body: unknown, status = 200): Response {
+function json(body: unknown, status = 200, extraHeaders?: HeadersInit): Response {
+  const headers = new Headers(extraHeaders);
+  headers.set("Cache-Control", "no-store");
+  headers.set("X-Content-Type-Options", "nosniff");
   return Response.json(body, {
     status,
-    headers: {
-      "Cache-Control": "no-store",
-      "X-Content-Type-Options": "nosniff",
-    },
+    headers,
   });
 }
 
@@ -42,23 +43,74 @@ async function sha256(value: string): Promise<string> {
     .join("");
 }
 
-function requestToken(request: Request): string {
+async function isAuthorized(request: Request): Promise<boolean> {
   const authorization = request.headers.get("Authorization") || "";
-  const bearer = authorization.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length)
+  const bearerToken = authorization.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length).trim()
     : "";
-  if (bearer) return bearer;
-  const cookie = request.headers.get("Cookie") || "";
-  const value = cookie
+  const cookieToken = (request.headers.get("Cookie") || "")
     .split(";")
-    .map((part) => part.trim().split("="))
-    .find(([name]) => name === SYNC_COOKIE)?.[1];
-  return value ? decodeURIComponent(value) : "";
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${SYNC_COOKIE_NAME}=`))
+    ?.slice(SYNC_COOKIE_NAME.length + 1);
+  let decodedCookieToken = "";
+  if (cookieToken) {
+    try {
+      decodedCookieToken = decodeURIComponent(cookieToken);
+    } catch {
+      decodedCookieToken = "";
+    }
+  }
+  const token = bearerToken || decodedCookieToken;
+  return token.length >= 32 && (await sha256(token)) === SYNC_TOKEN_SHA256;
 }
 
-async function isAuthorized(request: Request): Promise<boolean> {
-  const token = requestToken(request);
-  return token.length >= 32 && (await sha256(token)) === SYNC_TOKEN_SHA256;
+function sessionCookie(request: Request, token: string, maxAge: number): string {
+  const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
+  return `${SYNC_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/zcyworkbench; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
+}
+
+async function handleSyncSession(request: Request): Promise<Response> {
+  if (request.method === "GET") {
+    return (await isAuthorized(request))
+      ? json({ ok: true })
+      : json({ error: "Unauthorized" }, 401);
+  }
+
+  if (request.method === "POST") {
+    const authorization = request.headers.get("Authorization") || "";
+    let token = authorization.startsWith("Bearer ")
+      ? authorization.slice("Bearer ".length).trim()
+      : "";
+    if (!token) {
+      try {
+        const body = (await request.json()) as { token?: unknown };
+        token = typeof body.token === "string" ? body.token.trim() : "";
+      } catch {
+        return json({ error: "Invalid request" }, 400);
+      }
+    }
+
+    const authorized =
+      token.length >= 32 && (await sha256(token)) === SYNC_TOKEN_SHA256;
+    if (!authorized) return json({ error: "Invalid sync key" }, 401);
+
+    return json(
+      { ok: true },
+      200,
+      { "Set-Cookie": sessionCookie(request, token, SESSION_MAX_AGE_SECONDS) },
+    );
+  }
+
+  if (request.method === "DELETE") {
+    return json(
+      { ok: true },
+      200,
+      { "Set-Cookie": sessionCookie(request, "", 0) },
+    );
+  }
+
+  return json({ error: "Method not allowed" }, 405);
 }
 
 async function ensureSyncSchema(db: D1Database): Promise<void> {
@@ -102,18 +154,6 @@ async function handleSync(request: Request, env: Env): Promise<Response> {
   }
 
   const url = new URL(request.url);
-  if (url.pathname === SYNC_SESSION_PATH) {
-    if (request.method !== "POST") {
-      return json({ error: "Method not allowed" }, 405);
-    }
-    const response = json({ ok: true });
-    response.headers.append(
-      "Set-Cookie",
-      `${SYNC_COOKIE}=${encodeURIComponent(requestToken(request))}; Path=/zcyworkbench; HttpOnly; Secure; SameSite=Strict; Max-Age=31536000`,
-    );
-    return response;
-  }
-
   if (url.pathname.startsWith(SYNC_FILE_PATH)) {
     const key = safeRemoteFileKey(url);
     if (!key) return json({ error: "Invalid file path" }, 400);
@@ -222,6 +262,9 @@ const worker = {
       url.pathname === SYNC_SESSION_PATH ||
       url.pathname.startsWith(SYNC_FILE_PATH)
     ) {
+      if (url.pathname === SYNC_SESSION_PATH) {
+        return handleSyncSession(request);
+      }
       return handleSync(request, env);
     }
 

@@ -140,7 +140,8 @@ type WorkbenchData = {
 };
 
 type StorageState = "connecting" | "saved" | "saving" | "offline";
-type StorageBackend = "api" | "remote" | "browser";
+type StorageBackend = "cloud" | "local" | "browser";
+type CloudGateState = "checking" | "locked" | "error" | "ready";
 
 type WeatherState = {
   temperature: number;
@@ -151,8 +152,10 @@ type WeatherState = {
 } | null;
 
 const LOCAL_API = "http://127.0.0.1:4174";
-const REMOTE_API = withBasePath("/api/sync");
+const CLOUD_SYNC_API = withBasePath("/api/sync");
+const CLOUD_SYNC_SESSION_API = `${CLOUD_SYNC_API}/session`;
 const BROWSER_STORAGE_KEY = "zcy-personal-workbench-v1";
+const AUTO_SAVE_INTERVAL_MS = 30_000;
 const attendanceTypes: AttendanceType[] = [
   "迟到",
   "调休",
@@ -331,6 +334,18 @@ function localFileUrl(path: string) {
     .join("/")}`;
 }
 
+function cloudFileUrl(path: string) {
+  return `${CLOUD_SYNC_API}/file/${path
+    .split(/[\\/]/)
+    .map((part) => encodeURIComponent(part))
+    .join("/")}`;
+}
+
+function remoteImagePath(filename: string) {
+  const extension = filename.match(/\.[a-z0-9]{1,10}$/i)?.[0]?.toLowerCase() || "";
+  return `灵感图片/${uid()}${extension}`;
+}
+
 function weatherCopy(code: number) {
   if (code === 0) return { icon: "☀", text: "晴朗" };
   if (code <= 3) return { icon: "◒", text: "多云" };
@@ -468,9 +483,13 @@ export default function Home() {
   const [weather, setWeather] = useState<WeatherState>(null);
   const [storage, setStorage] = useState<StorageState>("connecting");
   const [storageBackend, setStorageBackend] =
-    useState<StorageBackend>("api");
-  const [storageMessage, setStorageMessage] = useState("正在连接个人资料库");
+    useState<StorageBackend>("cloud");
+  const [storageMessage, setStorageMessage] = useState("正在连接云端资料库");
   const [ready, setReady] = useState(false);
+  const [cloudGate, setCloudGate] = useState<CloudGateState>("checking");
+  const [cloudGateMessage, setCloudGateMessage] = useState("");
+  const [cloudUnlocking, setCloudUnlocking] = useState(false);
+  const [initialLoadAttempt, setInitialLoadAttempt] = useState(0);
   const [inspirationCategory, setInspirationCategory] =
     useState<InspirationCategory>("美");
   const [inspirationFilter, setInspirationFilter] = useState<
@@ -491,6 +510,12 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const currentWeekRef = useRef<HTMLDivElement>(null);
   const musicFirstInputRef = useRef<HTMLInputElement>(null);
+  const dataRef = useRef(data);
+  const lastSavedPayloadRef = useRef("");
+  const cloudSavePendingRef = useRef(false);
+  const cloudSaveInFlightRef = useRef(false);
+
+  dataRef.current = data;
 
   const referenceDate = clock ?? new Date(0);
   const year = referenceDate.getFullYear();
@@ -546,97 +571,164 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-    const isRemote = !["localhost", "127.0.0.1"].includes(
+    const isLocal = ["localhost", "127.0.0.1"].includes(
       window.location.hostname,
     );
 
-    const connectRemoteSession = async () => {
-      const fragment = new URLSearchParams(window.location.hash.slice(1));
-      const token = fragment.get("sync");
-      if (!token) return;
-      const response = await fetch(`${REMOTE_API}/session`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error("remote session unavailable");
-      window.history.replaceState(
-        window.history.state,
-        "",
-        `${window.location.pathname}${window.location.search}`,
-      );
-    };
+    async function loadInitialData() {
+      setReady(false);
+      setStorage("connecting");
 
-    const source = isRemote ? REMOTE_API : `${LOCAL_API}/api/data`;
-    connectRemoteSession()
-      .then(() => fetch(source))
-      .then(async (response) => {
-        if (!response.ok) throw new Error("storage unavailable");
-        const result = (await response.json()) as
-          | Partial<WorkbenchData>
-          | { data: Partial<WorkbenchData> };
-        const saved =
-          "data" in result && result.data ? result.data : result;
-        const serverData = normalizeData(saved);
-        const hasServerData =
-          serverData.projects.length +
-            serverData.schedule.length +
-            serverData.reminders.length +
-            serverData.inspirations.length >
-          0;
+      if (isLocal) {
+        setStorageBackend("local");
+        setCloudGate("ready");
+        setStorageMessage("正在连接电脑资料库");
+        try {
+          const response = await fetch(`${LOCAL_API}/api/data`);
+          if (!response.ok) throw new Error("local storage unavailable");
+          const saved = (await response.json()) as Partial<WorkbenchData>;
+          let nextData = normalizeData(saved);
+          const hasServerData =
+            nextData.projects.length +
+              nextData.schedule.length +
+              nextData.reminders.length +
+              nextData.inspirations.length >
+            0;
 
-        if (!isRemote && !hasServerData) {
-          const legacy = window.localStorage.getItem(BROWSER_STORAGE_KEY);
-          if (legacy) {
-            const migrated = normalizeData(JSON.parse(legacy));
-            await fetch(`${LOCAL_API}/api/data`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(migrated),
-            });
-            window.localStorage.removeItem(BROWSER_STORAGE_KEY);
-            if (!cancelled) setData(migrated);
-          } else if (!cancelled) {
-            setData(serverData);
+          if (!hasServerData) {
+            const legacy = window.localStorage.getItem(BROWSER_STORAGE_KEY);
+            if (legacy) {
+              nextData = normalizeData(JSON.parse(legacy));
+              await fetch(`${LOCAL_API}/api/data`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(nextData),
+              });
+              window.localStorage.removeItem(BROWSER_STORAGE_KEY);
+            }
           }
-        } else if (!cancelled) {
-          setData(serverData);
-        }
 
-        if (!cancelled) {
-          setStorageBackend(isRemote ? "remote" : "api");
+          if (cancelled) return;
+          setData(nextData);
+          lastSavedPayloadRef.current = JSON.stringify(nextData);
           setStorage("saved");
-          setStorageMessage(
-            isRemote
-              ? "已连接远端资料库"
-              : "已保存到电脑 · 个人资料库",
-          );
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
+          setStorageMessage("已保存到电脑 · 个人资料库");
+          setReady(true);
+        } catch {
+          if (cancelled) return;
           const browserData = window.localStorage.getItem(BROWSER_STORAGE_KEY);
+          let nextData = initialData;
           if (browserData) {
             try {
-              setData(normalizeData(JSON.parse(browserData)));
+              nextData = normalizeData(JSON.parse(browserData));
             } catch {
               window.localStorage.removeItem(BROWSER_STORAGE_KEY);
             }
           }
+          setData(nextData);
+          lastSavedPayloadRef.current = JSON.stringify(nextData);
           setStorageBackend("browser");
           setStorage("saved");
           setStorageMessage("已保存在此浏览器");
+          setReady(true);
         }
-      })
-      .finally(() => {
-        if (!cancelled) setReady(true);
-      });
+        return;
+      }
+
+      setStorageBackend("cloud");
+      setCloudGate("checking");
+      setStorageMessage("正在读取云端资料");
+      try {
+        const fragment = new URLSearchParams(window.location.hash.slice(1));
+        const fragmentToken = fragment.get("sync");
+        if (fragmentToken) {
+          const session = await fetch(CLOUD_SYNC_SESSION_API, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { Authorization: `Bearer ${fragmentToken}` },
+          });
+          if (!session.ok) throw new Error("cloud session unavailable");
+          window.history.replaceState(
+            window.history.state,
+            "",
+            `${window.location.pathname}${window.location.search}`,
+          );
+        }
+
+        const response = await fetch(CLOUD_SYNC_API, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        if (response.status === 401) {
+          if (!cancelled) {
+            setCloudGate("locked");
+            setStorage("offline");
+            setStorageMessage("云端资料库已锁定");
+          }
+          return;
+        }
+
+        let nextData: WorkbenchData;
+        if (response.status === 404) {
+          const legacy = window.localStorage.getItem(BROWSER_STORAGE_KEY);
+          nextData = legacy
+            ? normalizeData(JSON.parse(legacy))
+            : normalizeData(initialData);
+
+          if (legacy) {
+            const migration = await fetch(CLOUD_SYNC_API, {
+              method: "PUT",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(nextData),
+            });
+            if (!migration.ok) throw new Error("cloud migration failed");
+            window.localStorage.removeItem(BROWSER_STORAGE_KEY);
+          }
+        } else {
+          if (!response.ok) throw new Error("cloud storage unavailable");
+          const saved = (await response.json()) as {
+            data: Partial<WorkbenchData>;
+          };
+          nextData = normalizeData(saved.data);
+        }
+
+        if (cancelled) return;
+        setData(nextData);
+        lastSavedPayloadRef.current = JSON.stringify(nextData);
+        cloudSavePendingRef.current = false;
+        setCloudGate("ready");
+        setCloudGateMessage("");
+        setStorage("saved");
+        setStorageMessage("已从云端载入 · 每 30 秒自动保存");
+        setReady(true);
+      } catch {
+        if (cancelled) return;
+        setCloudGate("error");
+        setCloudGateMessage("暂时无法连接云端，请检查网络后重试。");
+        setStorage("offline");
+        setStorageMessage("云端连接失败");
+      }
+    }
+
+    void loadInitialData();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialLoadAttempt]);
 
   useEffect(() => {
     if (!ready) return;
+
+    const serialized = JSON.stringify(data);
+
+    if (storageBackend === "cloud") {
+      if (serialized === lastSavedPayloadRef.current) return;
+      cloudSavePendingRef.current = true;
+      setStorage("saving");
+      setStorageMessage("有更改，将在 30 秒内自动保存");
+      return;
+    }
 
     if (storageBackend === "browser") {
       const timer = window.setTimeout(() => {
@@ -656,23 +748,18 @@ export default function Home() {
     }
 
     setStorage("saving");
-    setStorageMessage(
-      storageBackend === "remote" ? "正在同步远端" : "正在写入电脑",
-    );
+    setStorageMessage("正在写入电脑");
     const timer = window.setTimeout(() => {
-      fetch(storageBackend === "remote" ? REMOTE_API : `${LOCAL_API}/api/data`, {
+      fetch(`${LOCAL_API}/api/data`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
         .then((response) => {
           if (!response.ok) throw new Error("save failed");
+          lastSavedPayloadRef.current = serialized;
           setStorage("saved");
-          setStorageMessage(
-            storageBackend === "remote"
-              ? "已同步到远端资料库"
-              : "已保存到电脑 · 个人资料库",
-          );
+          setStorageMessage("已保存到电脑 · 个人资料库");
         })
         .catch(() => {
           try {
@@ -691,6 +778,134 @@ export default function Home() {
     }, 320);
     return () => window.clearTimeout(timer);
   }, [data, ready, storageBackend]);
+
+  useEffect(() => {
+    if (!ready || storageBackend !== "cloud") return;
+    let disposed = false;
+
+    async function saveCloudNow() {
+      if (
+        !cloudSavePendingRef.current ||
+        cloudSaveInFlightRef.current
+      ) {
+        return;
+      }
+
+      const serialized = JSON.stringify(dataRef.current);
+      if (serialized === lastSavedPayloadRef.current) {
+        cloudSavePendingRef.current = false;
+        return;
+      }
+
+      cloudSaveInFlightRef.current = true;
+      if (!disposed) {
+        setStorage("saving");
+        setStorageMessage("正在自动保存到云端");
+      }
+
+      try {
+        const response = await fetch(CLOUD_SYNC_API, {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: serialized,
+        });
+        if (response.status === 401) {
+          cloudSavePendingRef.current = true;
+          if (!disposed) {
+            setReady(false);
+            setCloudGate("locked");
+            setStorage("offline");
+            setStorageMessage("云端会话已过期");
+          }
+          return;
+        }
+        if (!response.ok) throw new Error("cloud save failed");
+
+        lastSavedPayloadRef.current = serialized;
+        cloudSavePendingRef.current =
+          JSON.stringify(dataRef.current) !== serialized;
+        if (!disposed) {
+          setStorage(cloudSavePendingRef.current ? "saving" : "saved");
+          setStorageMessage(
+            cloudSavePendingRef.current
+              ? "又有新更改，将继续自动保存"
+              : `已自动保存到云端 · ${new Intl.DateTimeFormat("zh-CN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }).format(new Date())}`,
+          );
+        }
+      } catch {
+        cloudSavePendingRef.current = true;
+        if (!disposed) {
+          setStorage("offline");
+          setStorageMessage("网络中断，将自动重试保存");
+        }
+      } finally {
+        cloudSaveInFlightRef.current = false;
+      }
+    }
+
+    const interval = window.setInterval(
+      () => void saveCloudNow(),
+      AUTO_SAVE_INTERVAL_MS,
+    );
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") void saveCloudNow();
+    };
+    const handleBeforeUnload = () => {
+      if (!cloudSavePendingRef.current) return;
+      void fetch(CLOUD_SYNC_API, {
+        method: "PUT",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataRef.current),
+        keepalive: true,
+      });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [ready, storageBackend]);
+
+  const unlockCloud = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const token = String(new FormData(form).get("syncKey") || "").trim();
+    setCloudUnlocking(true);
+    setCloudGateMessage("");
+    try {
+      const response = await fetch(CLOUD_SYNC_SESSION_API, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (!response.ok) throw new Error("invalid sync key");
+      form.reset();
+      setCloudGate("checking");
+      setStorage("connecting");
+      setStorageMessage("正在读取云端资料");
+      setInitialLoadAttempt((current) => current + 1);
+    } catch {
+      setCloudGateMessage("同步密钥不正确，请重新输入。");
+    } finally {
+      setCloudUnlocking(false);
+    }
+  };
+
+  const retryCloudLoad = () => {
+    setCloudGate("checking");
+    setCloudGateMessage("");
+    setInitialLoadAttempt((current) => current + 1);
+  };
 
   useEffect(() => {
     if (!toast) return;
@@ -1219,24 +1434,35 @@ export default function Home() {
         if (storageBackend === "browser") {
           throw new Error("浏览器存储模式暂不支持图片上传。");
         }
-        if (storage === "offline") {
-          throw new Error("请先连接本地资料库后再上传图片。");
-        }
-        const response = await fetch(
-          `${LOCAL_API}/api/upload?name=${encodeURIComponent(image.name)}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": image.type || "application/octet-stream" },
-            body: image,
-          },
-        );
+        const targetPath = remoteImagePath(image.name);
+        const response =
+          storageBackend === "cloud"
+            ? await fetch(cloudFileUrl(targetPath), {
+                method: "PUT",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": image.type || "application/octet-stream",
+                },
+                body: image,
+              })
+            : await fetch(
+                `${LOCAL_API}/api/upload?name=${encodeURIComponent(image.name)}`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": image.type || "application/octet-stream",
+                  },
+                  body: image,
+                },
+              );
         if (!response.ok) throw new Error("图片保存失败");
         const result = (await response.json()) as {
-          path: string;
-          name: string;
+          path?: string;
+          name?: string;
+          key?: string;
         };
-        imagePath = result.path;
-        imageName = result.name;
+        imagePath = result.key || result.path || targetPath;
+        imageName = result.name || image.name;
       }
 
       setData((current) => ({
@@ -1267,7 +1493,7 @@ export default function Home() {
 
   const exportInspirations = async (format: "json" | "markdown") => {
     try {
-      if (storageBackend === "browser") {
+      if (storageBackend !== "local") {
         const filename =
           format === "markdown" ? "灵感碎片.md" : "灵感碎片.json";
         const content =
@@ -1790,14 +2016,65 @@ export default function Home() {
     </div>
   );
 
+  const cloudGateOverlay =
+    storageBackend === "cloud" && !ready ? (
+      <div className="cloud-gate-shell">
+        <section className="cloud-gate-card" aria-live="polite">
+          <span className="cloud-gate-mark" aria-hidden="true">序</span>
+          <span className="section-label">CLOUD DAYBOOK</span>
+          <h1>我的日程台</h1>
+          {cloudGate === "locked" ? (
+            <>
+              <p>输入云同步密钥，即可读取服务器中保存的日程与记录。</p>
+              <form className="cloud-unlock-form" onSubmit={unlockCloud}>
+                <label htmlFor="sync-key">云同步密钥</label>
+                <input
+                  id="sync-key"
+                  name="syncKey"
+                  type="password"
+                  minLength={32}
+                  required
+                  autoComplete="current-password"
+                  placeholder="请输入同步密钥"
+                  disabled={cloudUnlocking}
+                />
+                <button className="primary-button" type="submit" disabled={cloudUnlocking}>
+                  {cloudUnlocking ? "正在验证…" : "解锁并读取云端资料"}
+                </button>
+              </form>
+              <small className="cloud-gate-note">
+                验证成功后，本设备会保持登录 30 天；密钥不会写入网页代码。
+              </small>
+            </>
+          ) : cloudGate === "error" ? (
+            <>
+              <p>{cloudGateMessage || "暂时无法连接云端。"}</p>
+              <button className="primary-button" type="button" onClick={retryCloudLoad}>
+                重新连接
+              </button>
+            </>
+          ) : (
+            <>
+              <p>正在从服务器读取最新资料，请稍候。</p>
+              <span className="cloud-loading-bar" aria-hidden="true" />
+            </>
+          )}
+          {cloudGateMessage && cloudGate === "locked" && (
+            <small className="cloud-gate-error" role="alert">{cloudGateMessage}</small>
+          )}
+        </section>
+      </div>
+    ) : null;
+
   return (
     <main className="app-shell">
+      {cloudGateOverlay}
       <aside className="sidebar">
         <button className="brand" onClick={() => navigateTo("today")}>
           <span className="brand-mark">序</span>
           <span>
             <strong>我的日程台</strong>
-            <small>LOCAL DAYBOOK</small>
+            <small>{storageBackend === "cloud" ? "CLOUD DAYBOOK" : "LOCAL DAYBOOK"}</small>
           </span>
         </button>
 
@@ -1817,7 +2094,13 @@ export default function Home() {
         <div className={`storage-card ${storage}`}>
           <span className="storage-dot" />
           <div>
-            <strong>{storage === "offline" ? "资料库未连接" : "本地资料库"}</strong>
+            <strong>
+              {storageBackend === "cloud"
+                ? "云端资料库"
+                : storage === "offline"
+                  ? "资料库未连接"
+                  : "本地资料库"}
+            </strong>
             <small>{storageMessage}</small>
           </div>
         </div>
@@ -2000,7 +2283,11 @@ export default function Home() {
                       >
                         {item.imagePath && (
                           <img
-                            src={localFileUrl(item.imagePath)}
+                            src={
+                              storageBackend === "cloud"
+                                ? cloudFileUrl(item.imagePath)
+                                : localFileUrl(item.imagePath)
+                            }
                             alt={item.imageName || "灵感图片"}
                           />
                         )}
@@ -3219,7 +3506,11 @@ export default function Home() {
                   >
                     {item.imagePath && (
                       <img
-                        src={localFileUrl(item.imagePath)}
+                        src={
+                          storageBackend === "cloud"
+                            ? cloudFileUrl(item.imagePath)
+                            : localFileUrl(item.imagePath)
+                        }
                         alt={item.imageName || "灵感图片"}
                       />
                     )}

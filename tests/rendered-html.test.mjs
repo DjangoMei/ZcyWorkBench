@@ -65,3 +65,20 @@ test("packages and serves the app under /zcyworkbench", async () => {
   assert.match(worker, /Location:\s*`\$\{canonicalPath\}\$\{url\.search\}`/);
   assert.match(headers, /\/zcyworkbench\/assets\/\*/);
 });
+
+test("loads server state and autosaves cloud changes on a fixed interval", async () => {
+  const [page, worker] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../worker/index.ts", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(page, /AUTO_SAVE_INTERVAL_MS\s*=\s*30_000/);
+  assert.match(page, /fetch\(CLOUD_SYNC_API/);
+  assert.match(page, /credentials:\s*"same-origin"/);
+  assert.match(page, /setInterval\([\s\S]*AUTO_SAVE_INTERVAL_MS/);
+  assert.match(page, /visibilitychange/);
+  assert.match(page, /keepalive:\s*true/);
+  assert.match(worker, /SYNC_SESSION_PATH/);
+  assert.match(worker, /HttpOnly; SameSite=Strict/);
+  assert.match(worker, /env\.DB\.batch\(statements\)/);
+});
