@@ -207,14 +207,31 @@ const categoryMeta: Record<
   家: { subtitle: "家庭 · 孩子 · 生活", color: "green" },
 };
 
-const nerudaLines = [
-  ["我喜欢你是寂静的，仿佛你消失了一样。", "《二十首情诗和一支绝望的歌》"],
-  ["爱情太短，遗忘太长。", "《今夜我可以写》"],
-  ["我要在你身上去做，春天在樱桃树上做的事情。", "《每一天你都与宇宙的光同在》"],
-  ["你不像任何人，因为我爱你。", "《第十四首》"],
-  ["我爱你，不知道怎样，也不知道何时，或者从何处开始。", "《一百首爱的十四行诗》"],
-  ["在我荒瘠的土地上，你是最后的玫瑰。", "《二十首情诗和一支绝望的歌》"],
-  ["你是我在沉默中守护的光。", "聂鲁达诗意摘记"],
+const dailyLines = [
+  {
+    text: "人间的事，只要生机不灭，暂被阻抑，终有抬头的日子。",
+    credit: "丰子恺",
+    source: "《生机》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a6eb87e0000000028003b48?xsec_token=ABbRIDBStMZAKYgGNChifEvBpWQF9Gg8oOlBOjLh3U2v8%3D&xsec_source=pc_user",
+  },
+  {
+    text: "人的一生要千方百计，让自己活得比时间具体。",
+    credit: "原作者未标注",
+    source: "《我狼狈地穿过夏天的心脏。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a6b1be40000000028033758?xsec_token=AB412rZxqBGDzDgbpf6i4d6t8dA9UC-UxCB3rjLp8hTbY%3D&xsec_source=pc_user",
+  },
+  {
+    text: "所幸我们都还活着。",
+    credit: "原作者未标注",
+    source: "《生活，有一种大病初愈的美。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a5dd236000000000c015517?xsec_token=AB899umdCm9XhD50tKKO-CxWF9N1i7UvzUNpZk42zsEtI%3D&xsec_source=pc_user",
+  },
+  {
+    text: "我曾见的生命，都只是行过，无所谓完成。",
+    credit: "木心",
+    source: "《同情中断录》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a5658740000000007028bbf?xsec_token=ABHKmaKyMhBmIpotVbNC0huzWWMz-WDQa_urYNvLPJp80%3D&xsec_source=pc_user",
+  },
 ];
 
 const uid = () =>
@@ -524,8 +541,8 @@ export default function Home() {
   const latestSunday = clock ? latestSundayKey(clock) : "";
   const isSunday = clock?.getDay() === 0;
   const festival = clock ? festivalFor(clock) : "";
-  const quote = nerudaLines[
-    Math.floor(new Date(today).getTime() / 86_400_000) % nerudaLines.length
+  const quote = dailyLines[
+    Math.floor(new Date(today).getTime() / 86_400_000) % dailyLines.length
   ];
 
   useEffect(() => {
@@ -2164,9 +2181,11 @@ export default function Home() {
           </div>
 
           <div className="daily-line">
-            <span>NERUDA · 每日一句</span>
-            <p>“{quote[0]}”</p>
-            <small>{quote[1]}</small>
+            <span>DAILY VERSE · 今日一句</span>
+            <p>“{quote.text}”</p>
+            <a href={quote.href} target="_blank" rel="noreferrer">
+              {quote.credit} · {quote.source}
+            </a>
           </div>
 
           <div className="top-butterfly" aria-hidden="true">

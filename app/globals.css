@@ -482,9 +482,25 @@ select {
   white-space: nowrap;
 }
 
-.daily-line small {
+.daily-line small,
+.daily-line a {
   color: #9b9e9b;
   font-size: 7px;
+}
+
+.daily-line a {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-line a:hover {
+  color: #416a58;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .week-jump {
@@ -2365,7 +2381,8 @@ select {
   font-weight: 600;
 }
 
-.daily-line small {
+.daily-line small,
+.daily-line a {
   color: #65796f;
   font-size: 9px;
 }
