@@ -207,90 +207,265 @@ const categoryMeta: Record<
   家: { subtitle: "家庭 · 孩子 · 生活", color: "green" },
 };
 
+const xhsDailyLineNotes = {
+  cracks:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a6eb87e0000000028003b48?xsec_token=ABbRIDBStMZAKYgGNChifEvBpWQF9Gg8oOlBOjLh3U2v8%3D&xsec_source=pc_user",
+  summer:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a6b1be40000000028033758?xsec_token=AB412rZxqBGDzDgbpf6i4d6t8dA9UC-UxCB3rjLp8hTbY%3D&xsec_source=pc_user",
+  recovery:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a5dd236000000000c015517?xsec_token=AB899umdCm9XhD50tKKO-CxWF9N1i7UvzUNpZk42zsEtI%3D&xsec_source=pc_user",
+  trees:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a5658740000000007028bbf?xsec_token=ABHKmaKyMhBmIpotVbNC0huzWWMz-WDQa_urYNvLPJp80%3D&xsec_source=pc_user",
+  spring:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a50f9d300000000070298a0?xsec_token=ABmYCOKu0o5u1ecN6Zwvd4PqwPffhVhXhxYykRyYxykwM%3D&xsec_source=pc_user",
+  rain:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4fbddf0000000021020cd5?xsec_token=ABFUoY9laZsaSphTLuWQjOfdn7UtqklZqt7q1Rf6lwgWg%3D&xsec_source=pc_user",
+  soul:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4bc9d400000000070217b1?xsec_token=ABvdoYsJy6ZmzGCSRrkfgdtiXGO1vQWUhckC4VuSOPx6E%3D&xsec_source=pc_user",
+  solitude:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4a7200000000002101772f?xsec_token=ABLsijLgbVBxt-gca9k1iugYnjiFWEti2U1tYLc1SBQ3E%3D&xsec_source=pc_user",
+  love:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4922880000000008024d42?xsec_token=ABJfWZHspuDf0_Rw-GvKwILHYmIdjwcgledS5fJcBKj9w%3D&xsec_source=pc_user",
+  living:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a474d040000000007024b6b?xsec_token=ABVnaLHcwJllS02ui-vqAc-9oEBKOF9hsHhYaucDlE9rc%3D&xsec_source=pc_user",
+  truth:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a2010870000000022008dc9?xsec_token=AB4E4_UpGfmD5_b3mn0Vvz193XVI2L0VsRHFIbW95Tfuw%3D&xsec_source=pc_user",
+  ordinary:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a1e8952000000002100ba21?xsec_token=ABbpuX5UrqLcy_6U9fQJFbXDUOCWu2LxFbJLPjYRDK-RM%3D&xsec_source=pc_user",
+  self:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a03c95a000000000702d284?xsec_token=ABCyfV9N08e_B0y4KdzUQpTDJL22WX1pPmG8EgI4dnKiM%3D&xsec_source=pc_user",
+  someday:
+    "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a02d5a300000000080253f8?xsec_token=ABrAZcYHOl32hOydN2s2bwVeEeGirvPBiB9cats6p7RAk%3D&xsec_source=pc_user",
+} as const;
+
 const dailyLines = [
   {
     text: "人间的事，只要生机不灭，暂被阻抑，终有抬头的日子。",
     credit: "丰子恺",
     source: "《生机》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a6eb87e0000000028003b48?xsec_token=ABbRIDBStMZAKYgGNChifEvBpWQF9Gg8oOlBOjLh3U2v8%3D&xsec_source=pc_user",
+    href: xhsDailyLineNotes.cracks,
   },
   {
-    text: "人的一生要千方百计，让自己活得比时间具体。",
-    credit: "原作者未标注",
-    source: "《我狼狈地穿过夏天的心脏。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a6b1be40000000028033758?xsec_token=AB412rZxqBGDzDgbpf6i4d6t8dA9UC-UxCB3rjLp8hTbY%3D&xsec_source=pc_user",
+    text: "唯静，才能观照万物，对人间生活充满盎然的兴致。",
+    credit: "汪曾祺",
+    source: "《无事此静坐》",
+    href: xhsDailyLineNotes.cracks,
   },
   {
-    text: "所幸我们都还活着。",
-    credit: "原作者未标注",
-    source: "《生活，有一种大病初愈的美。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a5dd236000000000c015517?xsec_token=AB899umdCm9XhD50tKKO-CxWF9N1i7UvzUNpZk42zsEtI%3D&xsec_source=pc_user",
+    text: "接受苦难，接受残缺。接受墙的存在。",
+    credit: "史铁生",
+    source: "《墙下短记》",
+    href: xhsDailyLineNotes.cracks,
+  },
+  {
+    text: "人的一生要千方百计，让自己在虚无的人生里，活得比时间具体。",
+    credit: "曹韵",
+    source: "《住在电影里的人》",
+    href: xhsDailyLineNotes.summer,
+  },
+  {
+    text: "只要我走着，花不敢不开。",
+    credit: "曹韵",
+    source: "《住在电影里的人》",
+    href: xhsDailyLineNotes.summer,
+  },
+  {
+    text: "生活，有一种大病初愈的美。",
+    credit: "禾秀",
+    source: "《请拿走我一身荆棘·雨后》",
+    href: xhsDailyLineNotes.recovery,
+  },
+  {
+    text: "人的一生总得有一些时刻，允许自己飞起来。",
+    credit: "禾秀",
+    source: "《请拿走我一身荆棘·蝴蝶（两则）》",
+    href: xhsDailyLineNotes.recovery,
+  },
+  {
+    text: "低能量就去看树吧，呼吸都变得轻盈了。",
+    credit: "斯塔福德",
+    source: "《那些活了很久很久的树》",
+    href: xhsDailyLineNotes.trees,
+  },
+  {
+    text: "不要以现在的心情去规定未来。",
+    credit: "片山恭一",
+    source: "作品摘录",
+    href: xhsDailyLineNotes.trees,
   },
   {
     text: "我曾见的生命，都只是行过，无所谓完成。",
     credit: "木心",
-    source: "《同情中断录》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a5658740000000007028bbf?xsec_token=ABHKmaKyMhBmIpotVbNC0huzWWMz-WDQa_urYNvLPJp80%3D&xsec_source=pc_user",
+    source: "《鱼丽之宴》",
+    href: xhsDailyLineNotes.trees,
   },
   {
-    text: "就让你拆开我，如拆开信。",
-    credit: "原作者未标注",
-    source: "林白笔记《就让你拆开我，如拆开信。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a50f9d300000000070298a0?xsec_token=ABmYCOKu0o5u1ecN6Zwvd4PqwPffhVhXhxYykRyYxykwM%3D&xsec_source=pc_user",
+    text: "我与旧我，隔着一场大雪。雪融之后，便是春天。",
+    credit: "孟歌浅",
+    source: "《又见春天·新生》",
+    href: xhsDailyLineNotes.spring,
   },
   {
-    text: "我写了一首大雨滂沱的诗。",
-    credit: "原作者未标注",
-    source: "林白笔记《我写了一首大雨滂沱的诗。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4fbddf0000000021020cd5?xsec_token=ABFUoY9laZsaSphTLuWQjOfdn7UtqklZqt7q1Rf6lwgWg%3D&xsec_source=pc_user",
+    text: "你只管向春天走去，沿途的花，自会盖过眼底的雨。",
+    credit: "孟歌浅",
+    source: "《又见春天·向春天走去》",
+    href: xhsDailyLineNotes.spring,
+  },
+  {
+    text: "在这个染上严重忧郁症的城市，我写了一首大雨滂沱的诗。",
+    credit: "洛夫",
+    source: "《我的城市》",
+    href: xhsDailyLineNotes.rain,
+  },
+  {
+    text: "人必须先跟自己发生关联。",
+    credit: "欧文·亚隆",
+    source: "《当尼采哭泣》",
+    href: xhsDailyLineNotes.rain,
+  },
+  {
+    text: "总有些人，对生活要求极高，又无法忍受生活的愚蠢和粗暴。",
+    credit: "赫尔曼·黑塞",
+    source: "《荒原狼》",
+    href: xhsDailyLineNotes.rain,
   },
   {
     text: "我们间歇性地拥有灵魂。",
     credit: "维斯瓦娃·辛波斯卡",
-    source: "《关于灵魂的片言只语》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4bc9d400000000070217b1?xsec_token=ABvdoYsJy6ZmzGCSRrkfgdtiXGO1vQWUhckC4VuSOPx6E%3D&xsec_source=pc_user",
+    source: "《小谈灵魂》",
+    href: xhsDailyLineNotes.soul,
+  },
+  {
+    text: "敞开的门不会一直敞开。",
+    credit: "《致命女人》",
+    source: "剧集台词",
+    href: xhsDailyLineNotes.soul,
+  },
+  {
+    text: "我必须试着变得柔软，而非坚硬；温柔，而非冷漠。",
+    credit: "琼·安德森",
+    source: "《海边一年》",
+    href: xhsDailyLineNotes.soul,
   },
   {
     text: "孤独的人有他们自己的泥沼。",
-    credit: "原作者未标注",
-    source: "林白笔记《孤独的人有他们自己的泥沼。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4a7200000000002101772f?xsec_token=ABLsijLgbVBxt-gca9k1iugYnjiFWEti2U1tYLc1SBQ3E%3D&xsec_source=pc_user",
+    credit: "张爱玲",
+    source: "作品摘录",
+    href: xhsDailyLineNotes.solitude,
   },
   {
-    text: "一定要，爱着点什么。",
+    text: "往往是相爱的人爱闹意见，反而是不相干的人能互相容忍。",
+    credit: "张爱玲",
+    source: "《留情》",
+    href: xhsDailyLineNotes.solitude,
+  },
+  {
+    text: "太剧烈的快乐与悲哀，一样需要远离人群。",
+    credit: "张爱玲",
+    source: "《半生缘》",
+    href: xhsDailyLineNotes.solitude,
+  },
+  {
+    text: "美妙人生的关键，在于你能迷上什么东西。",
+    credit: "刘慈欣",
+    source: "《球状闪电》",
+    href: xhsDailyLineNotes.love,
+  },
+  {
+    text: "我的理想生活，是拥有一周逛一次花店的时间和心理上的余裕。",
+    credit: "山内麻里子",
+    source: "作品摘录",
+    href: xhsDailyLineNotes.love,
+  },
+  {
+    text: "不是我在料理植物，而是植物在料理我。",
+    credit: "沈熹微",
+    source: "《在人群中消失的日子》",
+    href: xhsDailyLineNotes.love,
+  },
+  {
+    text: "幸福就蕴藏在一个吻、一次散步和对晚餐的期待之中。",
+    credit: "迈克尔·坎宁安",
+    source: "作品摘录",
+    href: xhsDailyLineNotes.love,
+  },
+  {
+    text: "一个人的口味要宽一点，杂一点。",
     credit: "汪曾祺",
-    source: "《一定要，爱着点什么》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4922880000000008024d42?xsec_token=ABJfWZHspuDf0_Rw-GvKwILHYmIdjwcgledS5fJcBKj9w%3D&xsec_source=pc_user",
+    source: "《老味道》",
+    href: xhsDailyLineNotes.love,
+  },
+  {
+    text: "一定要爱着点什么，它让我们变得坚韧、宽容、充盈。",
+    credit: "汪曾祺",
+    source: "《生活是很好玩的》",
+    href: xhsDailyLineNotes.love,
   },
   {
     text: "我存在着，我在生活，我将生活下去。",
     credit: "鲁迅",
     source: "《“这也是生活”……》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a474d040000000007024b6b?xsec_token=ABVnaLHcwJllS02ui-vqAc-9oEBKOF9hsHhYaucDlE9rc%3D&xsec_source=pc_user",
+    href: xhsDailyLineNotes.living,
   },
   {
-    text: "现在我不说谎了。",
-    credit: "原作者未标注",
-    source: "林白笔记《现在我不说谎了。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a2010870000000022008dc9?xsec_token=AB4E4_UpGfmD5_b3mn0Vvz193XVI2L0VsRHFIbW95Tfuw%3D&xsec_source=pc_user",
+    text: "早上醒来，充分地好好活着一天；最近我只留心这件事。",
+    credit: "太宰治",
+    source: "《小说灯笼》",
+    href: xhsDailyLineNotes.truth,
+  },
+  {
+    text: "等我睡足了觉，一切都会好起来。",
+    credit: "奥特莎·莫什费格",
+    source: "《我想睡上一整年》",
+    href: xhsDailyLineNotes.truth,
   },
   {
     text: "我对一切伟大的东西总有点格格不入。",
-    credit: "原作者未标注",
-    source: "林白笔记《我对一切伟大的东西总有点格格不入。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a1e8952000000002100ba21?xsec_token=ABbpuX5UrqLcy_6U9fQJFbXDUOCWu2LxFbJLPjYRDK-RM%3D&xsec_source=pc_user",
+    credit: "汪曾祺",
+    source: "《野鸭子飞得高高的》",
+    href: xhsDailyLineNotes.ordinary,
   },
   {
-    text: "我对自己的认识晦暗不明。",
-    credit: "原作者未标注",
-    source: "林白笔记《我对自己的认识晦暗不明。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a03c95a000000000702d284?xsec_token=ABCyfV9N08e_B0y4KdzUQpTDJL22WX1pPmG8EgI4dnKiM%3D&xsec_source=pc_user",
+    text: "更进一步安于微小，安于平常。",
+    credit: "汪曾祺",
+    source: "《野鸭子飞得高高的》",
+    href: xhsDailyLineNotes.ordinary,
   },
   {
-    text: "当那一天将来临。",
-    credit: "原作者未标注",
-    source: "林白笔记《当那一天将来临。》",
-    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a02d5a300000000080253f8?xsec_token=ABrAZcYHOl32hOydN2s2bwVeEeGirvPBiB9cats6p7RAk%3D&xsec_source=pc_user",
+    text: "我对自己的认识晦暗不明，如共犯般隐秘。",
+    credit: "玛格丽特·尤瑟纳尔",
+    source: "《哈德良回忆录》",
+    href: xhsDailyLineNotes.self,
+  },
+  {
+    text: "比痛苦更持久且尖利伤人的，是抱有期望的等待。",
+    credit: "约翰·伯格",
+    source: "《我们在此相遇》",
+    href: xhsDailyLineNotes.self,
+  },
+  {
+    text: "我知道的东西谁都可以知道；而我的心却为我所独有。",
+    credit: "歌德",
+    source: "《少年维特的烦恼》",
+    href: xhsDailyLineNotes.self,
+  },
+  {
+    text: "连痛苦本身也会枯萎凋零。",
+    credit: "赫尔曼·黑塞",
+    source: "《精神与爱欲》",
+    href: xhsDailyLineNotes.someday,
+  },
+  {
+    text: "没有人能了解我的全部，爱我的全部；我只有我自己。",
+    credit: "西蒙娜·德·波伏娃",
+    source: "《青春手记》",
+    href: xhsDailyLineNotes.someday,
+  },
+  {
+    text: "我希望尽快见到你，和你聊天。",
+    credit: "崔恩荣",
+    source: "《对我无害之人》",
+    href: xhsDailyLineNotes.someday,
   },
 ];
 

@@ -98,15 +98,20 @@ test("orders today's work by completion state and newest creation time", async (
   );
 });
 
-test("keeps a three-month daily verse pool with source links", async () => {
+test("keeps a full-image three-month daily verse pool with source links", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const profileLinks = page.match(
-    /href: "https:\/\/www\.xiaohongshu\.com\/user\/profile\/652012110000000024014637\//g,
+    /"https:\/\/www\.xiaohongshu\.com\/user\/profile\/652012110000000024014637\//g,
   );
+  const pool = page.match(/const dailyLines = \[([\s\S]*?)\n\];/)?.[1];
+  const entries = pool?.match(/\n  \{\n    text:/g);
 
   assert.equal(profileLinks?.length, 14);
+  assert.equal(entries?.length, 38);
   assert.match(page, /维斯瓦娃·辛波斯卡/);
+  assert.match(page, /曹韵/);
+  assert.match(page, /禾秀/);
   assert.match(page, /汪曾祺/);
   assert.match(page, /鲁迅/);
-  assert.match(page, /credit: "原作者未标注"/);
+  assert.doesNotMatch(page, /原作者未标注/);
 });
