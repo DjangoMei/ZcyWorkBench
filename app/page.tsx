@@ -232,6 +232,66 @@ const dailyLines = [
     source: "《同情中断录》",
     href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a5658740000000007028bbf?xsec_token=ABHKmaKyMhBmIpotVbNC0huzWWMz-WDQa_urYNvLPJp80%3D&xsec_source=pc_user",
   },
+  {
+    text: "就让你拆开我，如拆开信。",
+    credit: "原作者未标注",
+    source: "林白笔记《就让你拆开我，如拆开信。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a50f9d300000000070298a0?xsec_token=ABmYCOKu0o5u1ecN6Zwvd4PqwPffhVhXhxYykRyYxykwM%3D&xsec_source=pc_user",
+  },
+  {
+    text: "我写了一首大雨滂沱的诗。",
+    credit: "原作者未标注",
+    source: "林白笔记《我写了一首大雨滂沱的诗。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4fbddf0000000021020cd5?xsec_token=ABFUoY9laZsaSphTLuWQjOfdn7UtqklZqt7q1Rf6lwgWg%3D&xsec_source=pc_user",
+  },
+  {
+    text: "我们间歇性地拥有灵魂。",
+    credit: "维斯瓦娃·辛波斯卡",
+    source: "《关于灵魂的片言只语》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4bc9d400000000070217b1?xsec_token=ABvdoYsJy6ZmzGCSRrkfgdtiXGO1vQWUhckC4VuSOPx6E%3D&xsec_source=pc_user",
+  },
+  {
+    text: "孤独的人有他们自己的泥沼。",
+    credit: "原作者未标注",
+    source: "林白笔记《孤独的人有他们自己的泥沼。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4a7200000000002101772f?xsec_token=ABLsijLgbVBxt-gca9k1iugYnjiFWEti2U1tYLc1SBQ3E%3D&xsec_source=pc_user",
+  },
+  {
+    text: "一定要，爱着点什么。",
+    credit: "汪曾祺",
+    source: "《一定要，爱着点什么》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a4922880000000008024d42?xsec_token=ABJfWZHspuDf0_Rw-GvKwILHYmIdjwcgledS5fJcBKj9w%3D&xsec_source=pc_user",
+  },
+  {
+    text: "我存在着，我在生活，我将生活下去。",
+    credit: "鲁迅",
+    source: "《“这也是生活”……》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a474d040000000007024b6b?xsec_token=ABVnaLHcwJllS02ui-vqAc-9oEBKOF9hsHhYaucDlE9rc%3D&xsec_source=pc_user",
+  },
+  {
+    text: "现在我不说谎了。",
+    credit: "原作者未标注",
+    source: "林白笔记《现在我不说谎了。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a2010870000000022008dc9?xsec_token=AB4E4_UpGfmD5_b3mn0Vvz193XVI2L0VsRHFIbW95Tfuw%3D&xsec_source=pc_user",
+  },
+  {
+    text: "我对一切伟大的东西总有点格格不入。",
+    credit: "原作者未标注",
+    source: "林白笔记《我对一切伟大的东西总有点格格不入。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a1e8952000000002100ba21?xsec_token=ABbpuX5UrqLcy_6U9fQJFbXDUOCWu2LxFbJLPjYRDK-RM%3D&xsec_source=pc_user",
+  },
+  {
+    text: "我对自己的认识晦暗不明。",
+    credit: "原作者未标注",
+    source: "林白笔记《我对自己的认识晦暗不明。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a03c95a000000000702d284?xsec_token=ABCyfV9N08e_B0y4KdzUQpTDJL22WX1pPmG8EgI4dnKiM%3D&xsec_source=pc_user",
+  },
+  {
+    text: "当那一天将来临。",
+    credit: "原作者未标注",
+    source: "林白笔记《当那一天将来临。》",
+    href: "https://www.xiaohongshu.com/user/profile/652012110000000024014637/6a02d5a300000000080253f8?xsec_token=ABrAZcYHOl32hOydN2s2bwVeEeGirvPBiB9cats6p7RAk%3D&xsec_source=pc_user",
+  },
 ];
 
 const uid = () =>

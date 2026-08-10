@@ -97,3 +97,16 @@ test("orders today's work by completion state and newest creation time", async (
     "the homepage and schedule detail views should use the same ordering",
   );
 });
+
+test("keeps a three-month daily verse pool with source links", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const profileLinks = page.match(
+    /href: "https:\/\/www\.xiaohongshu\.com\/user\/profile\/652012110000000024014637\//g,
+  );
+
+  assert.equal(profileLinks?.length, 14);
+  assert.match(page, /维斯瓦娃·辛波斯卡/);
+  assert.match(page, /汪曾祺/);
+  assert.match(page, /鲁迅/);
+  assert.match(page, /credit: "原作者未标注"/);
+});
