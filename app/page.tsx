@@ -17,6 +17,7 @@ import {
   cleanWeeklyRoutines,
 } from "../lib/cleanup.mjs";
 import { withBasePath } from "./base-path";
+import { additionalDailyLines } from "./additional-daily-lines";
 
 type Section =
   | "today"
@@ -239,6 +240,7 @@ const xhsDailyLineNotes = {
 } as const;
 
 const dailyLines = [
+  ...additionalDailyLines,
   {
     text: "人间的事，只要生机不灭，暂被阻抑，终有抬头的日子。",
     credit: "丰子恺",

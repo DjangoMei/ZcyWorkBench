@@ -88,10 +88,14 @@ def ocr_image(engine: RapidOCR, url: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--page", type=Path, default=Path("app/page.tsx"))
+    parser.add_argument("--urls-file", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    urls = extract_note_urls(args.page.read_text(encoding="utf-8"))
+    if args.urls_file:
+        urls = json.loads(args.urls_file.read_text(encoding="utf-8"))
+    else:
+        urls = extract_note_urls(args.page.read_text(encoding="utf-8"))
     engine = RapidOCR()
     report: list[dict[str, Any]] = []
 

@@ -100,18 +100,37 @@ test("orders today's work by completion state and newest creation time", async (
 
 test("keeps a full-image three-month daily verse pool with source links", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const additional = await readFile(
+    new URL("../app/additional-daily-lines.ts", import.meta.url),
+    "utf8",
+  );
+  const newSourceUrls = JSON.parse(
+    await readFile(
+      new URL("../scripts/xhs-poetry-note-urls.json", import.meta.url),
+      "utf8",
+    ),
+  );
   const profileLinks = page.match(
     /"https:\/\/www\.xiaohongshu\.com\/user\/profile\/652012110000000024014637\//g,
   );
   const pool = page.match(/const dailyLines = \[([\s\S]*?)\n\];/)?.[1];
   const entries = pool?.match(/\n  \{\n    text:/g);
+  const additionalEntries = additional.match(/\n  \{ text:/g);
 
   assert.equal(profileLinks?.length, 14);
   assert.equal(entries?.length, 38);
+  assert.equal(additionalEntries?.length, 72);
+  assert.equal(entries.length + additionalEntries.length, 110);
+  assert.equal(newSourceUrls.length, 82);
+  assert.ok(newSourceUrls.some((url) => url.includes("/661bcecf0000000007006537/")));
+  assert.ok(newSourceUrls.some((url) => url.includes("/5b7bc9612352610001677da3/")));
+  assert.ok(newSourceUrls.some((url) => url.includes("/66b62c3b000000000b033e63/")));
   assert.match(page, /维斯瓦娃·辛波斯卡/);
   assert.match(page, /曹韵/);
   assert.match(page, /禾秀/);
   assert.match(page, /汪曾祺/);
   assert.match(page, /鲁迅/);
-  assert.doesNotMatch(page, /原作者未标注/);
+  assert.match(additional, /耶胡达·阿米亥/);
+  assert.match(additional, /沃尔特·惠特曼/);
+  assert.doesNotMatch(`${page}\n${additional}`, /原作者未标注/);
 });
