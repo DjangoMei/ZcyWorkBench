@@ -257,6 +257,21 @@ function defaultLocalDateTime() {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
+function scheduleCreatedAtTime(item: ScheduleItem) {
+  const createdAt = new Date(item.createdAt).getTime();
+  if (!Number.isNaN(createdAt)) return createdAt;
+
+  const fallback = new Date(item.datetime).getTime();
+  return Number.isNaN(fallback) ? 0 : fallback;
+}
+
+function compareScheduleNewestFirst(a: ScheduleItem, b: ScheduleItem) {
+  return (
+    Number(a.done) - Number(b.done) ||
+    scheduleCreatedAtTime(b) - scheduleCreatedAtTime(a)
+  );
+}
+
 function getIsoWeek(date: Date) {
   const target = new Date(date);
   target.setHours(0, 0, 0, 0);
@@ -1019,11 +1034,7 @@ export default function Home() {
           const itemDate = new Date(item.datetime);
           return !Number.isNaN(itemDate.getTime()) && dateKey(itemDate) <= today;
         })
-        .sort(
-          (a, b) =>
-            Number(a.done) - Number(b.done) ||
-            new Date(a.datetime).getTime() - new Date(b.datetime).getTime(),
-        ),
+        .sort(compareScheduleNewestFirst),
     [data.schedule, today],
   );
 
@@ -1969,11 +1980,7 @@ export default function Home() {
       </section>
       <div className="record-list">
         {[...data.schedule]
-          .sort(
-            (a, b) =>
-              Number(a.done) - Number(b.done) ||
-              new Date(a.datetime).getTime() - new Date(b.datetime).getTime(),
-          )
+          .sort(compareScheduleNewestFirst)
           .map((item) =>
             editingRecord?.kind === "schedule" && editingRecord.id === item.id ? (
               <form
@@ -3250,11 +3257,7 @@ export default function Home() {
               </section>
               <div className="record-list">
                 {[...data.schedule]
-                  .sort(
-                    (a, b) =>
-                      Number(a.done) - Number(b.done) ||
-                      new Date(a.datetime).getTime() - new Date(b.datetime).getTime(),
-                  )
+                  .sort(compareScheduleNewestFirst)
                   .map((item) =>
                     editingRecord?.kind === "schedule" &&
                     editingRecord.id === item.id ? (

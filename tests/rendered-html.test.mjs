@@ -82,3 +82,18 @@ test("loads server state and autosaves cloud changes on a fixed interval", async
   assert.match(worker, /HttpOnly; SameSite=Strict/);
   assert.match(worker, /env\.DB\.batch\(statements\)/);
 });
+
+test("orders today's work by completion state and newest creation time", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /function compareScheduleNewestFirst/);
+  assert.match(page, /Number\(a\.done\) - Number\(b\.done\)/);
+  assert.match(
+    page,
+    /scheduleCreatedAtTime\(b\) - scheduleCreatedAtTime\(a\)/,
+  );
+  assert.ok(
+    page.match(/\.sort\(compareScheduleNewestFirst\)/g)?.length >= 3,
+    "the homepage and schedule detail views should use the same ordering",
+  );
+});
