@@ -106,9 +106,11 @@ test("shows a live reuse count while entering weekly radio songs", async () => {
 
   assert.match(page, /function normalizeSongTitle/);
   assert.match(page, /function countPreviousSongOccurrences/);
-  assert.match(page, /entry\.week === currentWeek && index === currentIndex/);
-  assert.match(page, /此前出现 \{reuseCount\} 次/);
-  assert.match(page, /aria-live="polite"/);
+  assert.match(page, /entry\.week < currentWeek/);
+  assert.match(page, /newMusicInputKey === inputKey/);
+  assert.match(page, /`此前出现过\$\{previousCount\}次`/);
+  assert.match(page, /`第\$\{occurrenceNumber\}次`/);
+  assert.match(page, /aria-live=\{isAddingSong \? "polite" : undefined\}/);
 });
 
 test("keeps a full-image three-month daily verse pool with source links", async () => {

@@ -532,9 +532,11 @@ function countPreviousSongOccurrences(
       entry.songs.reduce(
         (entryCount, song, index) =>
           entryCount +
-          (entry.week === currentWeek && index === currentIndex
-            ? 0
-            : Number(normalizeSongTitle(song) === normalizedTitle)),
+          Number(
+            normalizeSongTitle(song) === normalizedTitle &&
+              (entry.week < currentWeek ||
+                (entry.week === currentWeek && index < currentIndex)),
+          ),
         0,
       ),
     0,
@@ -797,6 +799,7 @@ export default function Home() {
     InspirationCategory | "全部"
   >("全部");
   const [inspirationBusy, setInspirationBusy] = useState(false);
+  const [newMusicInputKey, setNewMusicInputKey] = useState<string | null>(null);
   const [editingRecord, setEditingRecord] = useState<{
     kind:
       | "schedule"
@@ -3376,12 +3379,15 @@ export default function Home() {
                           </div>
                           {Array.from({ length: 4 }, (_, songIndex) => {
                             const song = entry?.songs[songIndex] || "";
-                            const reuseCount = countPreviousSongOccurrences(
+                            const previousCount = countPreviousSongOccurrences(
                               data.music,
                               song,
                               week,
                               songIndex,
                             );
+                            const inputKey = `${week}-${songIndex}`;
+                            const isAddingSong = newMusicInputKey === inputKey;
+                            const occurrenceNumber = previousCount + 1;
                             return (
                               <label
                                 className="music-song-field"
@@ -3394,6 +3400,16 @@ export default function Home() {
                                       : undefined
                                   }
                                   value={song}
+                                  onFocus={() => {
+                                    if (!normalizeSongTitle(song)) {
+                                      setNewMusicInputKey(inputKey);
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    setNewMusicInputKey((current) =>
+                                      current === inputKey ? null : current,
+                                    )
+                                  }
                                   onChange={(event) =>
                                     updateMusic(
                                       week,
@@ -3409,10 +3425,12 @@ export default function Home() {
                                 />
                                 {normalizeSongTitle(song) && (
                                   <span
-                                    className={`song-reuse-count ${reuseCount > 0 ? "reused" : ""}`}
-                                    aria-live="polite"
+                                    className={`song-reuse-count ${previousCount > 0 ? "reused" : ""}`}
+                                    aria-live={isAddingSong ? "polite" : undefined}
                                   >
-                                    此前出现 {reuseCount} 次
+                                    {isAddingSong
+                                      ? `此前出现过${previousCount}次`
+                                      : `第${occurrenceNumber}次`}
                                   </span>
                                 )}
                               </label>
