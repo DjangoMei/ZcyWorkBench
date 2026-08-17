@@ -1483,6 +1483,32 @@ select {
   font-size: 10px;
 }
 
+.music-song-field {
+  position: relative;
+  min-width: 0;
+  height: 45px;
+  display: grid;
+  align-content: center;
+}
+
+.music-song-field input {
+  width: 100%;
+}
+
+.song-reuse-count {
+  position: absolute;
+  right: 9px;
+  bottom: -1px;
+  color: #71857a;
+  font: 600 8px/1.2 system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.song-reuse-count.reused {
+  color: #6d5b99;
+}
+
 .music-row input:hover,
 .music-row input:focus {
   border-color: rgba(75, 108, 90, 0.13);

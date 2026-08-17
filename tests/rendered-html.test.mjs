@@ -98,6 +98,19 @@ test("orders today's work by completion state and newest creation time", async (
   );
 });
 
+test("shows a live reuse count while entering weekly radio songs", async () => {
+  const page = await readFile(
+    new URL("../app/page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(page, /function normalizeSongTitle/);
+  assert.match(page, /function countPreviousSongOccurrences/);
+  assert.match(page, /entry\.week === currentWeek && index === currentIndex/);
+  assert.match(page, /此前出现 \{reuseCount\} 次/);
+  assert.match(page, /aria-live="polite"/);
+});
+
 test("keeps a full-image three-month daily verse pool with source links", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const additional = await readFile(

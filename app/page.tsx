@@ -509,6 +509,38 @@ function compareScheduleNewestFirst(a: ScheduleItem, b: ScheduleItem) {
   );
 }
 
+function normalizeSongTitle(value: string) {
+  return value
+    .normalize("NFKC")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("zh-CN");
+}
+
+function countPreviousSongOccurrences(
+  music: MusicEntry[],
+  title: string,
+  currentWeek: number,
+  currentIndex: number,
+) {
+  const normalizedTitle = normalizeSongTitle(title);
+  if (!normalizedTitle) return 0;
+
+  return music.reduce(
+    (count, entry) =>
+      count +
+      entry.songs.reduce(
+        (entryCount, song, index) =>
+          entryCount +
+          (entry.week === currentWeek && index === currentIndex
+            ? 0
+            : Number(normalizeSongTitle(song) === normalizedTitle)),
+        0,
+      ),
+    0,
+  );
+}
+
 function getIsoWeek(date: Date) {
   const target = new Date(date);
   target.setHours(0, 0, 0, 0);
@@ -3342,23 +3374,50 @@ export default function Home() {
                             </span>
                             {week === currentWeek && <em>本周</em>}
                           </div>
-                          {Array.from({ length: 4 }, (_, songIndex) => (
-                            <input
-                              key={songIndex}
-                              ref={
-                                week === currentWeek && songIndex === 0
-                                  ? musicFirstInputRef
-                                  : undefined
-                              }
-                              value={entry?.songs[songIndex] || ""}
-                              onChange={(event) =>
-                                updateMusic(week, songIndex, event.target.value)
-                              }
-                              placeholder={
-                                songIndex < 3 ? `歌名 ${songIndex + 1}` : "第四首（可选）"
-                              }
-                            />
-                          ))}
+                          {Array.from({ length: 4 }, (_, songIndex) => {
+                            const song = entry?.songs[songIndex] || "";
+                            const reuseCount = countPreviousSongOccurrences(
+                              data.music,
+                              song,
+                              week,
+                              songIndex,
+                            );
+                            return (
+                              <label
+                                className="music-song-field"
+                                key={songIndex}
+                              >
+                                <input
+                                  ref={
+                                    week === currentWeek && songIndex === 0
+                                      ? musicFirstInputRef
+                                      : undefined
+                                  }
+                                  value={song}
+                                  onChange={(event) =>
+                                    updateMusic(
+                                      week,
+                                      songIndex,
+                                      event.target.value,
+                                    )
+                                  }
+                                  placeholder={
+                                    songIndex < 3
+                                      ? `歌名 ${songIndex + 1}`
+                                      : "第四首（可选）"
+                                  }
+                                />
+                                {normalizeSongTitle(song) && (
+                                  <span
+                                    className={`song-reuse-count ${reuseCount > 0 ? "reused" : ""}`}
+                                    aria-live="polite"
+                                  >
+                                    此前出现 {reuseCount} 次
+                                  </span>
+                                )}
+                              </label>
+                            );
+                          })}
                         </div>
                       );
                     })}
