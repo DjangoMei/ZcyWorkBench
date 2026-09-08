@@ -4041,6 +4041,21 @@ button.home-mini-card {
   background: linear-gradient(145deg, #9a624e, #c58b6c);
 }
 
+.home-autumn-theme .primary-button,
+.home-autumn-theme .round-add,
+.home-autumn-theme .category-picker button.active {
+  border-color: rgba(160, 99, 73, 0.2);
+  color: #fffdf9;
+  background: linear-gradient(145deg, #a66750, #ca9270);
+  box-shadow: 0 8px 18px rgba(137, 82, 58, 0.14);
+}
+
+.home-autumn-theme .category-picker button:not(.active) {
+  border-color: rgba(145, 94, 70, 0.14);
+  color: #765b50;
+  background: rgba(255, 253, 249, 0.8);
+}
+
 .home-autumn-theme .home-one-line-form input,
 .home-autumn-theme .home-inspiration-form input,
 .home-autumn-theme .loose-memo-home-form textarea,
