@@ -779,6 +779,27 @@ function DreamButterfly({ small = false }: { small?: boolean }) {
   );
 }
 
+function AutumnMapleSprig({ small = false }: { small?: boolean }) {
+  const leafPath =
+    "M50 4 43 23 31 14 35 35 16 27 25 47 7 52 34 66 29 84 47 74 50 97 53 74 71 84 66 66 93 52 75 47 84 27 65 35 69 14 57 23Z";
+
+  return (
+    <span
+      className={`autumn-maple-sprig ${small ? "small" : ""}`}
+      aria-hidden="true"
+    >
+      {["leaf-one", "leaf-two", "leaf-three"].map((className) => (
+        <svg className={className} viewBox="0 0 100 112" key={className}>
+          <path d={leafPath} />
+          <path className="leaf-vein" d="M50 98 50 34M50 59 31 43M50 67 70 47" />
+          <path className="leaf-stem" d="M50 96C49 104 47 108 43 111" />
+        </svg>
+      ))}
+      <i />
+    </span>
+  );
+}
+
 export default function Home() {
   const [active, setActive] = useState<Section>("today");
   const [data, setData] = useState<WorkbenchData>(initialData);
@@ -2363,7 +2384,7 @@ export default function Home() {
     ) : null;
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${active === "today" ? "home-autumn-theme" : ""}`}>
       {cloudGateOverlay}
       <aside className="sidebar">
         <button className="brand" onClick={() => navigateTo("today")}>
@@ -2400,9 +2421,15 @@ export default function Home() {
             <small>{storageMessage}</small>
           </div>
         </div>
-        <div className="sidebar-butterfly">
-          <DreamButterfly />
-        </div>
+        {active === "today" ? (
+          <div className="sidebar-maple">
+            <AutumnMapleSprig small />
+          </div>
+        ) : (
+          <div className="sidebar-butterfly">
+            <DreamButterfly />
+          </div>
+        )}
       </aside>
 
       <section className="workspace">
@@ -2467,15 +2494,27 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="top-butterfly" aria-hidden="true">
-            <span className="top-orb orb-blue" />
-            <span className="top-orb orb-lilac" />
-            <div className="top-butterfly-copy">
-              <small>SOFTLY, BUT SURELY</small>
-              <strong>让今天轻盈一点</strong>
+          {active === "today" ? (
+            <div className="top-autumn" aria-hidden="true">
+              <span className="top-orb orb-apricot" />
+              <span className="top-orb orb-mauve" />
+              <div className="top-butterfly-copy">
+                <small>AUTUMN, GENTLY</small>
+                <strong>把秋日写得轻一点</strong>
+              </div>
+              <AutumnMapleSprig />
             </div>
-            <DreamButterfly />
-          </div>
+          ) : (
+            <div className="top-butterfly" aria-hidden="true">
+              <span className="top-orb orb-blue" />
+              <span className="top-orb orb-lilac" />
+              <div className="top-butterfly-copy">
+                <small>SOFTLY, BUT SURELY</small>
+                <strong>让今天轻盈一点</strong>
+              </div>
+              <DreamButterfly />
+            </div>
+          )}
         </header>
 
         <div className={`content ${active === "today" ? "home-content" : ""}`}>

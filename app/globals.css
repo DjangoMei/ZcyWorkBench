@@ -3752,3 +3752,330 @@ button.home-mini-card {
   font-size: 9px;
   white-space: nowrap;
 }
+
+/* Seasonal homepage · a pale, misty maple palette for early autumn. */
+.home-autumn-theme {
+  --ink: #40322d;
+  --ink-soft: #725e55;
+  --line: rgba(132, 91, 70, 0.12);
+  --green: #b8795f;
+  --green-dark: #895845;
+  --blue: #c6cedb;
+  --lilac: #d8c7d7;
+  --peach: #ecc3ad;
+  --shadow: 0 18px 52px rgba(117, 79, 61, 0.09);
+  background:
+    radial-gradient(circle at 7% 3%, rgba(244, 194, 157, 0.34), transparent 26rem),
+    radial-gradient(circle at 87% 4%, rgba(219, 198, 206, 0.36), transparent 28rem),
+    radial-gradient(circle at 70% 92%, rgba(232, 208, 169, 0.3), transparent 30rem),
+    #fbf7f0;
+}
+
+.home-autumn-theme .sidebar {
+  border-right-color: rgba(139, 95, 72, 0.1);
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.78), rgba(249, 239, 227, 0.68));
+}
+
+.home-autumn-theme .brand-mark {
+  background: linear-gradient(145deg, #a86550, #cc9676);
+  box-shadow: 0 11px 25px rgba(148, 91, 66, 0.2);
+}
+
+.home-autumn-theme .section-nav button {
+  color: #7b655b;
+}
+
+.home-autumn-theme .section-nav button:hover,
+.home-autumn-theme .section-nav button.active {
+  color: #774c3c;
+  border-color: rgba(160, 103, 76, 0.11);
+  background: rgba(255, 252, 247, 0.82);
+  box-shadow: 0 8px 22px rgba(125, 81, 59, 0.06);
+}
+
+.home-autumn-theme .nav-icon {
+  color: #ad7258;
+  background: rgba(220, 168, 132, 0.14);
+}
+
+.home-autumn-theme .storage-card {
+  border-color: rgba(149, 101, 78, 0.1);
+  background: rgba(255, 251, 245, 0.64);
+}
+
+.home-autumn-theme .storage-dot {
+  background: #bd8062;
+  box-shadow: 0 0 0 4px rgba(189, 128, 98, 0.12);
+}
+
+.home-autumn-theme .topbar {
+  border-bottom-color: rgba(145, 96, 74, 0.09);
+  background: rgba(255, 250, 243, 0.5);
+}
+
+.home-autumn-theme .today-lockup div span,
+.home-autumn-theme .weather small {
+  color: #88736a;
+}
+
+.home-autumn-theme .today-lockup i {
+  color: #c9aea0;
+}
+
+.home-autumn-theme .weather-icon {
+  color: #9a6956;
+  background: rgba(235, 189, 158, 0.25);
+}
+
+.home-autumn-theme .daily-line {
+  border-color: rgba(149, 104, 119, 0.12);
+  background:
+    radial-gradient(circle at 95% 15%, rgba(220, 195, 207, 0.3), transparent 7rem),
+    rgba(255, 253, 249, 0.62);
+}
+
+.home-autumn-theme .daily-line > span,
+.home-autumn-theme .daily-line a:hover {
+  color: #a06f68;
+}
+
+.top-autumn {
+  position: relative;
+  min-width: 0;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 7px 7px 7px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 17% 85%, rgba(238, 184, 143, 0.28), transparent 5rem),
+    radial-gradient(circle at 80% 8%, rgba(213, 190, 208, 0.3), transparent 6rem),
+    rgba(255, 252, 247, 0.58);
+}
+
+.top-autumn .top-butterfly-copy small {
+  color: #ad7862;
+}
+
+.top-autumn .top-butterfly-copy strong {
+  color: #69463a;
+}
+
+.orb-apricot {
+  right: 58px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  background: rgba(222, 145, 104, 0.55);
+  box-shadow: 0 0 14px rgba(222, 145, 104, 0.48);
+}
+
+.orb-mauve {
+  right: 10px;
+  bottom: 10px;
+  width: 6px;
+  height: 6px;
+  background: rgba(182, 139, 166, 0.52);
+  box-shadow: 0 0 12px rgba(182, 139, 166, 0.45);
+}
+
+.autumn-maple-sprig {
+  position: relative;
+  width: 72px;
+  height: 58px;
+  display: block;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 8px 12px rgba(134, 79, 54, 0.14));
+}
+
+.autumn-maple-sprig svg {
+  position: absolute;
+  overflow: visible;
+  fill: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.autumn-maple-sprig .leaf-vein,
+.autumn-maple-sprig .leaf-stem {
+  fill: none;
+  stroke: rgba(120, 74, 55, 0.55);
+  stroke-width: 2.2;
+}
+
+.autumn-maple-sprig .leaf-one {
+  right: 5px;
+  top: 2px;
+  width: 39px;
+  color: rgba(205, 120, 84, 0.78);
+  transform: rotate(13deg);
+}
+
+.autumn-maple-sprig .leaf-two {
+  left: 13px;
+  top: 11px;
+  width: 31px;
+  color: rgba(226, 163, 105, 0.68);
+  transform: rotate(-21deg);
+}
+
+.autumn-maple-sprig .leaf-three {
+  left: 1px;
+  bottom: -3px;
+  width: 23px;
+  color: rgba(190, 139, 153, 0.58);
+  transform: rotate(-39deg);
+}
+
+.autumn-maple-sprig > i {
+  position: absolute;
+  right: 1px;
+  bottom: 3px;
+  width: 58px;
+  height: 24px;
+  border-bottom: 1px solid rgba(132, 84, 62, 0.3);
+  border-radius: 50%;
+  transform: rotate(-9deg);
+}
+
+.autumn-maple-sprig.small {
+  width: 88px;
+  height: 74px;
+  opacity: 0.72;
+  transform: rotate(-8deg);
+}
+
+.sidebar-maple {
+  position: absolute;
+  right: -4px;
+  bottom: 72px;
+}
+
+.home-autumn-theme .home-mini-card {
+  border-color: rgba(255, 255, 255, 0.87);
+  color: #43342e;
+  background: rgba(255, 252, 247, 0.8);
+  box-shadow: 0 14px 38px rgba(119, 77, 57, 0.075);
+}
+
+.home-autumn-theme .home-clickable:hover,
+.home-autumn-theme .home-clickable:focus-visible {
+  border-color: rgba(180, 116, 84, 0.28);
+  box-shadow: 0 17px 42px rgba(119, 77, 57, 0.12);
+}
+
+.home-autumn-theme .today-work-panel {
+  background:
+    radial-gradient(circle at 7% 7%, rgba(238, 180, 139, 0.24), transparent 15rem),
+    rgba(255, 252, 247, 0.83);
+}
+
+.home-autumn-theme .loose-memo-panel,
+.home-autumn-theme .inspiration-quick-card {
+  background:
+    radial-gradient(circle at 92% 8%, rgba(216, 190, 207, 0.3), transparent 14rem),
+    rgba(255, 252, 248, 0.82);
+}
+
+.home-autumn-theme .routine-wechat {
+  background:
+    radial-gradient(circle at 92% 9%, rgba(237, 176, 132, 0.26), transparent 11rem),
+    rgba(255, 252, 247, 0.81);
+}
+
+.home-autumn-theme .routine-expense {
+  background:
+    radial-gradient(circle at 90% 10%, rgba(230, 203, 160, 0.3), transparent 11rem),
+    rgba(255, 252, 247, 0.81);
+}
+
+.home-autumn-theme .meeting-memo {
+  background:
+    radial-gradient(circle at 8% 90%, rgba(232, 190, 166, 0.23), transparent 11rem),
+    rgba(255, 252, 247, 0.8);
+}
+
+.home-autumn-theme .social-memo,
+.home-autumn-theme .music-shortcut {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(211, 188, 207, 0.3), transparent 11rem),
+    rgba(255, 252, 248, 0.81);
+}
+
+.home-autumn-theme .attendance-shortcut,
+.home-autumn-theme .checkin-shortcut.checked {
+  background:
+    radial-gradient(circle at 10% 90%, rgba(234, 190, 149, 0.27), transparent 10rem),
+    rgba(255, 252, 247, 0.81);
+}
+
+.home-autumn-theme .checkin-shortcut {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(231, 183, 158, 0.3), transparent 11rem),
+    rgba(255, 252, 247, 0.81);
+}
+
+.home-autumn-theme .home-card-head > div > span,
+.home-autumn-theme .home-card-head > small,
+.home-autumn-theme .home-card-head > button,
+.home-autumn-theme .panel-footer-link {
+  color: #8b6252;
+}
+
+.home-autumn-theme .home-card-head h2,
+.home-autumn-theme .home-check-row > strong,
+.home-autumn-theme .music-shortcut strong,
+.home-autumn-theme .checkin-shortcut strong,
+.home-autumn-theme .attendance-shortcut strong {
+  color: #43332d;
+}
+
+.home-autumn-theme .home-one-line-form button,
+.home-autumn-theme .attendance-shortcut form button,
+.home-autumn-theme .music-disc,
+.home-autumn-theme .home-check-row.done > span {
+  border-color: #a86d55;
+  background: linear-gradient(145deg, #9a624e, #c58b6c);
+}
+
+.home-autumn-theme .home-one-line-form input,
+.home-autumn-theme .home-inspiration-form input,
+.home-autumn-theme .loose-memo-home-form textarea,
+.home-autumn-theme .attendance-shortcut select {
+  border-color: rgba(145, 94, 70, 0.17);
+  color: #44342d;
+  background: rgba(255, 253, 249, 0.88);
+}
+
+.home-autumn-theme .memo-list > button,
+.home-autumn-theme .loose-memo-preview > p:not(.home-empty-line) {
+  color: #4b3b34;
+  background: rgba(248, 237, 226, 0.78);
+}
+
+.home-autumn-theme .social-memo .memo-list > button {
+  background: rgba(242, 232, 239, 0.8);
+}
+
+.home-autumn-theme .upcoming-home-list > div > span {
+  color: #865945;
+  background: #f3e4d7;
+}
+
+.home-autumn-theme .project-home-list > div > span {
+  background: #eadfd4;
+}
+
+.home-autumn-theme .project-home-list i {
+  background: #b77a5e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .autumn-maple-sprig,
+  .autumn-maple-sprig svg {
+    animation: none !important;
+  }
+}
