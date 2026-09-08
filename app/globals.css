@@ -3991,6 +3991,29 @@ button.home-mini-card {
   color: #43332d;
 }
 
+.home-autumn-theme .today-work-panel .home-empty-line {
+  color: #78645b;
+}
+
+.home-autumn-theme .today-work-panel .home-check-row > span {
+  border-color: rgba(151, 102, 80, 0.42);
+  background: rgba(255, 251, 246, 0.74);
+}
+
+.home-autumn-theme .today-work-panel .home-check-row.done > span {
+  border-color: #a66a51;
+  color: #fffdf9;
+  background: linear-gradient(145deg, #986047, #c98d6b);
+}
+
+.home-autumn-theme .today-work-panel .home-check-row.done > strong {
+  color: #927b70;
+}
+
+.home-autumn-theme .today-work-panel .home-one-line-form input::placeholder {
+  color: #8c776d;
+}
+
 .home-autumn-theme .home-one-line-form button,
 .home-autumn-theme .attendance-shortcut form button,
 .home-autumn-theme .music-disc,
