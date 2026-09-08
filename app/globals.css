@@ -3991,15 +3991,36 @@ button.home-mini-card {
   color: #43332d;
 }
 
-.home-autumn-theme .today-work-panel .home-empty-line {
+.home-autumn-theme .today-work-panel .home-empty-line,
+.home-autumn-theme .today-work-panel .mini-empty {
   color: #78645b;
 }
 
+.home-autumn-theme .today-work-panel .compact-item {
+  color: #47372f;
+  background: rgba(255, 250, 244, 0.76);
+}
+
+.home-autumn-theme .today-work-panel .compact-item .item-copy strong {
+  color: #44332c;
+}
+
+.home-autumn-theme .today-work-panel .compact-item .item-copy small {
+  color: #8b7063;
+}
+
+.home-autumn-theme .today-work-panel .compact-item em {
+  color: #855b49;
+  background: rgba(232, 204, 187, 0.7);
+}
+
+.home-autumn-theme .today-work-panel .soft-check,
 .home-autumn-theme .today-work-panel .home-check-row > span {
   border-color: rgba(151, 102, 80, 0.42);
   background: rgba(255, 251, 246, 0.74);
 }
 
+.home-autumn-theme .today-work-panel .compact-item input:checked + .soft-check,
 .home-autumn-theme .today-work-panel .home-check-row.done > span {
   border-color: #a66a51;
   color: #fffdf9;
@@ -4010,7 +4031,8 @@ button.home-mini-card {
   color: #927b70;
 }
 
-.home-autumn-theme .today-work-panel .home-one-line-form input::placeholder {
+.home-autumn-theme .today-work-panel .home-one-line-form input::placeholder,
+.home-autumn-theme .today-work-panel .home-quick-schedule input::placeholder {
   color: #8c776d;
 }
 
