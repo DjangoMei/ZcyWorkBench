@@ -3884,68 +3884,26 @@ button.home-mini-card {
 
 .autumn-maple-sprig {
   position: relative;
-  width: 72px;
-  height: 58px;
+  width: 80px;
+  height: 56px;
   display: block;
   flex: 0 0 auto;
-  filter: drop-shadow(0 8px 12px rgba(134, 79, 54, 0.14));
+  opacity: 0.67;
+  filter: saturate(0.72) brightness(1.13) drop-shadow(0 8px 13px rgba(134, 79, 54, 0.11));
 }
 
-.autumn-maple-sprig svg {
-  position: absolute;
-  overflow: visible;
-  fill: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.autumn-maple-sprig .leaf-vein,
-.autumn-maple-sprig .leaf-stem {
-  fill: none;
-  stroke: rgba(120, 74, 55, 0.55);
-  stroke-width: 2.2;
-}
-
-.autumn-maple-sprig .leaf-one {
-  right: 5px;
-  top: 2px;
-  width: 39px;
-  color: rgba(205, 120, 84, 0.78);
-  transform: rotate(13deg);
-}
-
-.autumn-maple-sprig .leaf-two {
-  left: 13px;
-  top: 11px;
-  width: 31px;
-  color: rgba(226, 163, 105, 0.68);
-  transform: rotate(-21deg);
-}
-
-.autumn-maple-sprig .leaf-three {
-  left: 1px;
-  bottom: -3px;
-  width: 23px;
-  color: rgba(190, 139, 153, 0.58);
-  transform: rotate(-39deg);
-}
-
-.autumn-maple-sprig > i {
-  position: absolute;
-  right: 1px;
-  bottom: 3px;
-  width: 58px;
-  height: 24px;
-  border-bottom: 1px solid rgba(132, 84, 62, 0.3);
-  border-radius: 50%;
-  transform: rotate(-9deg);
+.autumn-maple-sprig img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
 
 .autumn-maple-sprig.small {
-  width: 88px;
-  height: 74px;
-  opacity: 0.72;
-  transform: rotate(-8deg);
+  width: 92px;
+  height: 62px;
+  opacity: 0.5;
+  transform: rotate(-6deg);
 }
 
 .sidebar-maple {
@@ -4090,7 +4048,7 @@ button.home-mini-card {
 
 @media (prefers-reduced-motion: reduce) {
   .autumn-maple-sprig,
-  .autumn-maple-sprig svg {
+  .autumn-maple-sprig img {
     animation: none !important;
   }
 }

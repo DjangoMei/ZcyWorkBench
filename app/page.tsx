@@ -780,22 +780,12 @@ function DreamButterfly({ small = false }: { small?: boolean }) {
 }
 
 function AutumnMapleSprig({ small = false }: { small?: boolean }) {
-  const leafPath =
-    "M50 4 43 23 31 14 35 35 16 27 25 47 7 52 34 66 29 84 47 74 50 97 53 74 71 84 66 66 93 52 75 47 84 27 65 35 69 14 57 23Z";
-
   return (
     <span
       className={`autumn-maple-sprig ${small ? "small" : ""}`}
       aria-hidden="true"
     >
-      {["leaf-one", "leaf-two", "leaf-three"].map((className) => (
-        <svg className={className} viewBox="0 0 100 112" key={className}>
-          <path d={leafPath} />
-          <path className="leaf-vein" d="M50 98 50 34M50 59 31 43M50 67 70 47" />
-          <path className="leaf-stem" d="M50 96C49 104 47 108 43 111" />
-        </svg>
-      ))}
-      <i />
+      <img src={withBasePath("/maple-watercolor-sprig.png")} alt="" />
     </span>
   );
 }
