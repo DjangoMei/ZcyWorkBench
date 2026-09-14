@@ -471,6 +471,70 @@ const dailyLines = [
   },
 ];
 
+type ShenzhenSeason = "spring" | "summer" | "autumn" | "winter";
+
+const seasonMeta: Record<
+  ShenzhenSeason,
+  { label: string; keywords: RegExp }
+> = {
+  spring: {
+    label: "春季",
+    keywords: /春天|春日|早春|暮春|三月|四月|春暖花开|新绿/,
+  },
+  summer: {
+    label: "夏季",
+    keywords: /夏|六月|七月|八月|炎热|冰激凌/,
+  },
+  autumn: {
+    label: "秋季",
+    keywords: /秋天|秋日|初秋|深秋|秋阳|九月|十月|十一月|枫叶|红叶|桂花/,
+  },
+  winter: {
+    label: "冬季",
+    keywords: /冬天|冬日|初冬|深冬|十二月|一月|腊月|大雪|冰封/,
+  },
+};
+
+function shenzhenSeasonFor(date: Date): ShenzhenSeason {
+  const month = date.getMonth() + 1;
+  if (month >= 2 && month <= 4) return "spring";
+  if (month >= 5 && month <= 8) return "summer";
+  if (month >= 9 && month <= 11) return "autumn";
+  return "winter";
+}
+
+function seasonForDailyLine(
+  line: (typeof dailyLines)[number],
+): ShenzhenSeason | null {
+  const seasons = Object.keys(seasonMeta) as ShenzhenSeason[];
+  const textSeason = seasons.find((season) =>
+    seasonMeta[season].keywords.test(line.text),
+  );
+  if (textSeason) return textSeason;
+
+  return (
+    seasons.find((season) =>
+      seasonMeta[season].keywords.test(line.source),
+    ) ?? null
+  );
+}
+
+function dailyLineFor(date: Date) {
+  const season = shenzhenSeasonFor(date);
+  const seasonSafePool = dailyLines.filter((line) => {
+    const lineSeason = seasonForDailyLine(line);
+    return lineSeason === null || lineSeason === season;
+  });
+  const dayNumber = Math.floor(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000,
+  );
+
+  return {
+    season,
+    quote: seasonSafePool[dayNumber % seasonSafePool.length],
+  };
+}
+
 const uid = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -839,9 +903,7 @@ export default function Home() {
   const latestSunday = clock ? latestSundayKey(clock) : "";
   const isSunday = clock?.getDay() === 0;
   const festival = clock ? festivalFor(clock) : "";
-  const quote = dailyLines[
-    Math.floor(new Date(today).getTime() / 86_400_000) % dailyLines.length
-  ];
+  const { quote, season: currentSeason } = dailyLineFor(referenceDate);
 
   useEffect(() => {
     setClock(new Date());
@@ -2477,7 +2539,9 @@ export default function Home() {
           </div>
 
           <div className="daily-line">
-            <span>DAILY VERSE · 今日一句</span>
+            <span>
+              DAILY VERSE · 深圳{seasonMeta[currentSeason].label}筛选
+            </span>
             <p>“{quote.text}”</p>
             <a href={quote.href} target="_blank" rel="noreferrer">
               {quote.credit} · {quote.source}
