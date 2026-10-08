@@ -20,9 +20,6 @@ const SYNC_PATH = "/zcyworkbench/api/sync";
 const SYNC_FILE_PATH = `${SYNC_PATH}/file/`;
 const SYNC_SESSION_PATH = `${SYNC_PATH}/session`;
 const SYNC_COOKIE_NAME = "zcy_sync_session";
-// Legacy key is accepted only until the first database-backed rotation.
-const SYNC_TOKEN_SHA256 =
-  "10de79fc94e5eecace73154d1ba40aab8ff966f4f2b7b77101cc80ebb41e4cb1";
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
@@ -60,10 +57,7 @@ async function isValidSyncToken(token: string, env: Env): Promise<boolean> {
   )
     .bind("main")
     .first<{ salt: string; tokenHash: string }>();
-  if (active) {
-    return (await sha256(`${active.salt}:${token}`)) === active.tokenHash;
-  }
-  return token.length >= 32 && (await sha256(token)) === SYNC_TOKEN_SHA256;
+  return active !== null && (await sha256(`${active.salt}:${token}`)) === active.tokenHash;
 }
 
 async function isAuthorized(request: Request, env: Env): Promise<boolean> {
