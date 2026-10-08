@@ -85,6 +85,17 @@ test("loads server state and autosaves cloud changes on a fixed interval", async
   assert.match(worker, /env\.DB\.batch\(statements\)/);
 });
 
+test("cloud key input accepts the same length range as the server", async () => {
+  const [page, worker] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../worker/index.ts", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(page, /name="syncKey"[\s\S]*?minLength=\{8\}[\s\S]*?maxLength=\{128\}/);
+  assert.match(worker, /token\.length < 8/);
+  assert.match(worker, /nextToken\.length < 8 \|\| nextToken\.length > 128/);
+});
+
 test("orders today's work by completion state and newest creation time", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 

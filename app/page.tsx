@@ -2401,7 +2401,8 @@ export default function Home() {
                   id="sync-key"
                   name="syncKey"
                   type="password"
-                  minLength={32}
+                  minLength={8}
+                  maxLength={128}
                   required
                   autoComplete="current-password"
                   placeholder="请输入同步密钥"
