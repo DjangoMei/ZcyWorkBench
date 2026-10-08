@@ -20,6 +20,7 @@ const SYNC_PATH = "/zcyworkbench/api/sync";
 const SYNC_FILE_PATH = `${SYNC_PATH}/file/`;
 const SYNC_SESSION_PATH = `${SYNC_PATH}/session`;
 const SYNC_COOKIE_NAME = "zcy_sync_session";
+// Legacy key is accepted only until the first database-backed rotation.
 const SYNC_TOKEN_SHA256 =
   "10de79fc94e5eecace73154d1ba40aab8ff966f4f2b7b77101cc80ebb41e4cb1";
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
@@ -43,7 +44,29 @@ async function sha256(value: string): Promise<string> {
     .join("");
 }
 
-async function isAuthorized(request: Request): Promise<boolean> {
+async function ensureSyncAuthSchema(db: D1Database): Promise<void> {
+  await db.prepare(`CREATE TABLE IF NOT EXISTS sync_auth (
+    id TEXT PRIMARY KEY,
+    salt TEXT NOT NULL,
+    token_hash TEXT NOT NULL
+  )`).run();
+}
+
+async function isValidSyncToken(token: string, env: Env): Promise<boolean> {
+  if (token.length < 8) return false;
+  await ensureSyncAuthSchema(env.DB);
+  const active = await env.DB.prepare(
+    "SELECT salt, token_hash AS tokenHash FROM sync_auth WHERE id = ?",
+  )
+    .bind("main")
+    .first<{ salt: string; tokenHash: string }>();
+  if (active) {
+    return (await sha256(`${active.salt}:${token}`)) === active.tokenHash;
+  }
+  return token.length >= 32 && (await sha256(token)) === SYNC_TOKEN_SHA256;
+}
+
+async function isAuthorized(request: Request, env: Env): Promise<boolean> {
   const authorization = request.headers.get("Authorization") || "";
   const bearerToken = authorization.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()
@@ -62,7 +85,7 @@ async function isAuthorized(request: Request): Promise<boolean> {
     }
   }
   const token = bearerToken || decodedCookieToken;
-  return token.length >= 32 && (await sha256(token)) === SYNC_TOKEN_SHA256;
+  return isValidSyncToken(token, env);
 }
 
 function sessionCookie(request: Request, token: string, maxAge: number): string {
@@ -70,9 +93,9 @@ function sessionCookie(request: Request, token: string, maxAge: number): string 
   return `${SYNC_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/zcyworkbench; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
 }
 
-async function handleSyncSession(request: Request): Promise<Response> {
+async function handleSyncSession(request: Request, env: Env): Promise<Response> {
   if (request.method === "GET") {
-    return (await isAuthorized(request))
+    return (await isAuthorized(request, env))
       ? json({ ok: true })
       : json({ error: "Unauthorized" }, 401);
   }
@@ -91,8 +114,7 @@ async function handleSyncSession(request: Request): Promise<Response> {
       }
     }
 
-    const authorized =
-      token.length >= 32 && (await sha256(token)) === SYNC_TOKEN_SHA256;
+    const authorized = await isValidSyncToken(token, env);
     if (!authorized) return json({ error: "Invalid sync key" }, 401);
 
     return json(
@@ -100,6 +122,37 @@ async function handleSyncSession(request: Request): Promise<Response> {
       200,
       { "Set-Cookie": sessionCookie(request, token, SESSION_MAX_AGE_SECONDS) },
     );
+  }
+
+  if (request.method === "PUT") {
+    const authorization = request.headers.get("Authorization") || "";
+    const currentToken = authorization.startsWith("Bearer ")
+      ? authorization.slice("Bearer ".length).trim()
+      : "";
+    if (!(await isValidSyncToken(currentToken, env))) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+
+    let nextToken = "";
+    try {
+      const body = (await request.json()) as { token?: unknown };
+      nextToken = typeof body.token === "string" ? body.token.trim() : "";
+    } catch {
+      return json({ error: "Invalid request" }, 400);
+    }
+    if (nextToken.length < 8 || nextToken.length > 128) {
+      return json({ error: "Sync key must be 8 to 128 characters" }, 400);
+    }
+
+    const salt = crypto.randomUUID();
+    const tokenHash = await sha256(`${salt}:${nextToken}`);
+    await env.DB.prepare(
+      `INSERT INTO sync_auth (id, salt, token_hash) VALUES (?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET salt = excluded.salt, token_hash = excluded.token_hash`,
+    )
+      .bind("main", salt, tokenHash)
+      .run();
+    return json({ ok: true });
   }
 
   if (request.method === "DELETE") {
@@ -149,7 +202,7 @@ function safeRemoteFileKey(url: URL): string | null {
 }
 
 async function handleSync(request: Request, env: Env): Promise<Response> {
-  if (!(await isAuthorized(request))) {
+  if (!(await isAuthorized(request, env))) {
     return json({ error: "Unauthorized" }, 401);
   }
 
@@ -263,7 +316,7 @@ const worker = {
       url.pathname.startsWith(SYNC_FILE_PATH)
     ) {
       if (url.pathname === SYNC_SESSION_PATH) {
-        return handleSyncSession(request);
+        return handleSyncSession(request, env);
       }
       return handleSync(request, env);
     }
