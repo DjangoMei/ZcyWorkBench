@@ -634,6 +634,12 @@ function getWeekStart(year: number, week: number) {
   return monday;
 }
 
+function formatMusicWeekLabel(year: number, week: number) {
+  const thursday = getWeekStart(year, week);
+  thursday.setDate(thursday.getDate() + 3);
+  return `${thursday.getMonth() + 1}月第${Math.ceil(thursday.getDate() / 7)}周`;
+}
+
 function formatDateTime(value: string) {
   const date = new Date(value);
   if (!value || Number.isNaN(date.getTime())) return "未设置时间";
@@ -3464,7 +3470,7 @@ export default function Home() {
                           ref={week === currentWeek ? currentWeekRef : undefined}
                         >
                           <div className="week-cell">
-                            <strong>W{String(week).padStart(2, "0")}</strong>
+                            <strong>{formatMusicWeekLabel(year, week)}</strong>
                             <span>
                               {start.getMonth() + 1}.{start.getDate()}—
                               {end.getMonth() + 1}.{end.getDate()}

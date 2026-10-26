@@ -126,6 +126,15 @@ test("shows a live reuse count while entering weekly radio songs", async () => {
   assert.match(page, /aria-live=\{isAddingSong \? "polite" : undefined\}/);
 });
 
+test("labels radio weeks by month without changing their stored week number", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /function formatMusicWeekLabel\(year: number, week: number\)/);
+  assert.match(page, /thursday\.setDate\(thursday\.getDate\(\) \+ 3\)/);
+  assert.match(page, /<strong>\{formatMusicWeekLabel\(year, week\)\}<\/strong>/);
+  assert.match(page, /data\.music\.find\(\(item\) => item\.week === week\)/);
+});
+
 test("keeps a full-image three-month daily verse pool with source links", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const additional = await readFile(
