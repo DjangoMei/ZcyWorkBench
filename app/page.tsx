@@ -833,30 +833,41 @@ function normalizeData(raw: Partial<WorkbenchData> & { tempTasks?: unknown[] }) 
   } as WorkbenchData;
 }
 
-function DreamButterfly({ small = false }: { small?: boolean }) {
+function WinterButterfly({ small = false }: { small?: boolean }) {
   return (
     <span
-      className={`dream-butterfly ${small ? "small" : ""}`}
+      className={`winter-butterfly ${small ? "small" : ""}`}
       aria-hidden="true"
     >
       <img
-        src={withBasePath(
-          small ? "/butterfly-lower.png" : "/butterfly-upper.png",
-        )}
+        src={withBasePath("/winter-paper-butterfly.webp")}
         alt=""
+        width={768}
+        height={462}
+        draggable={false}
       />
     </span>
   );
 }
 
-function AutumnMapleSprig({ small = false }: { small?: boolean }) {
+function WinterSnowflake({ className = "" }: { className?: string }) {
   return (
-    <span
-      className={`autumn-maple-sprig ${small ? "small" : ""}`}
+    <svg
+      className={`winter-snowflake ${className}`}
+      viewBox="0 0 48 48"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
       aria-hidden="true"
+      focusable="false"
     >
-      <img src={withBasePath("/maple-watercolor-sprig.png")} alt="" />
-    </span>
+      {[0, 60, 120, 180, 240, 300].map((angle) => (
+        <path key={angle} transform={`rotate(${angle} 24 24)`}
+          d="M24 24V5 M24 12l-5-4 M24 12l5-4 M24 18l-4-3 M24 18l4-3" />
+      ))}
+      <circle cx="24" cy="24" r="3" />
+    </svg>
   );
 }
 
@@ -2443,7 +2454,7 @@ export default function Home() {
     ) : null;
 
   return (
-    <main className={`app-shell ${active === "today" ? "home-autumn-theme" : ""}`}>
+    <main className="app-shell winter-theme">
       {cloudGateOverlay}
       <aside className="sidebar">
         <button className="brand" onClick={() => navigateTo("today")}>
@@ -2480,15 +2491,10 @@ export default function Home() {
             <small>{storageMessage}</small>
           </div>
         </div>
-        {active === "today" ? (
-          <div className="sidebar-maple">
-            <AutumnMapleSprig small />
-          </div>
-        ) : (
-          <div className="sidebar-butterfly">
-            <DreamButterfly />
-          </div>
-        )}
+        <div className="sidebar-winter" aria-hidden="true">
+          <WinterSnowflake className="sidebar-snowflake" />
+          <WinterButterfly small />
+        </div>
       </aside>
 
       <section className="workspace">
@@ -2555,27 +2561,14 @@ export default function Home() {
             </a>
           </div>
 
-          {active === "today" ? (
-            <div className="top-autumn" aria-hidden="true">
-              <span className="top-orb orb-apricot" />
-              <span className="top-orb orb-mauve" />
-              <div className="top-butterfly-copy">
-                <small>AUTUMN, GENTLY</small>
-                <strong>把秋日写得轻一点</strong>
-              </div>
-              <AutumnMapleSprig />
+          <div className="top-winter" aria-hidden="true">
+            <WinterSnowflake className="top-snowflake" />
+            <div className="top-butterfly-copy">
+              <small>WINTER, SOFTLY</small>
+              <strong>冬日慢慢，心事轻轻</strong>
             </div>
-          ) : (
-            <div className="top-butterfly" aria-hidden="true">
-              <span className="top-orb orb-blue" />
-              <span className="top-orb orb-lilac" />
-              <div className="top-butterfly-copy">
-                <small>SOFTLY, BUT SURELY</small>
-                <strong>让今天轻盈一点</strong>
-              </div>
-              <DreamButterfly />
-            </div>
-          )}
+            <WinterButterfly />
+          </div>
         </header>
 
         <div className={`content ${active === "today" ? "home-content" : ""}`}>
@@ -2905,7 +2898,6 @@ export default function Home() {
                   className="home-mini-card music-shortcut"
                   onClick={goToCurrentWeek}
                 >
-                  <DreamButterfly small />
                   <span className="music-disc">♫</span>
                   <div>
                     <small>WEEKLY RADIO</small>

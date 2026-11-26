@@ -39,12 +39,30 @@ test("renders the finished personal schedule dashboard", async () => {
   assert.match(html, /今日打卡/);
   assert.match(html, /项目工作/);
   assert.match(html, /近期提醒/);
-  assert.match(html, /home-autumn-theme/);
-  assert.match(html, /把秋日写得轻一点/);
+  assert.match(html, /app-shell winter-theme/);
+  assert.match(html, /冬日慢慢，心事轻轻/);
+  assert.match(html, /WINTER, SOFTLY/);
+  assert.match(html, /zcyworkbench\/winter-paper-butterfly.webp/);
+  assert.match(html, /winter-snowflake/);
+  assert.doesNotMatch(html, /home-autumn-theme|AUTUMN, GENTLY|maple-watercolor-sprig/);
   assert.match(html, /随手加一条日程/);
   assert.match(html, /一句话记下此刻的想法/);
   assert.doesNotMatch(html, /今天也按自己的节奏，慢慢完成/);
   assert.doesNotMatch(html, /codex-preview|Building your site/);
+});
+
+test("shares the winter palette across views without touching stored records", async () => {
+  const [page, css] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    access(new URL("../public/winter-paper-butterfly.webp", import.meta.url)),
+  ]);
+  assert.match(page, /<main className="app-shell winter-theme">/);
+  assert.match(css, /\.winter-theme \.compact-item em/);
+  assert.match(css, /\.winter-theme \.content:not\(\.home-content\) \.page-title/);
+  assert.match(css, /\.winter-theme::before[\s\S]*?pointer-events: none/);
+  assert.match(css, /\.sidebar-winter[^{]*\{[^}]*pointer-events: none/);
+  assert.doesNotMatch(page, /AutumnMapleSprig|DreamButterfly/);
 });
 
 test("packages and serves the app under /zcyworkbench", async () => {
