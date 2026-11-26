@@ -3717,12 +3717,12 @@ button.home-mini-card {
   align-items: center;
   gap: 8px;
   padding: 4px 6px;
-  border: 1px solid rgba(219, 166, 149, 0.18);
+  border: 1px solid rgba(192, 148, 166, 0.22);
   border-radius: 10px;
   color: #27323d;
   background:
-    radial-gradient(circle at 96% 10%, rgba(191, 169, 231, 0.18), transparent 7rem),
-    rgba(250, 239, 234, 0.78);
+    radial-gradient(circle at 96% 10%, rgba(218, 199, 220, 0.18), transparent 7rem),
+    rgba(245, 231, 237, 0.82);
   cursor: pointer;
   text-align: left;
 }
@@ -3733,22 +3733,22 @@ button.home-mini-card {
   display: grid;
   place-items: center;
   border-radius: 8px;
-  color: #8a615b;
-  background: rgba(244, 204, 190, 0.7);
+  color: #795967;
+  background: #e9cdd7;
   font-size: 9px;
   font-weight: 700;
 }
 
 .birthday-home-alert strong {
   overflow: hidden;
-  color: #4b3432;
+  color: #4f3844;
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .birthday-home-alert small {
-  color: #755d64;
+  color: #755d6b;
   font-size: 9px;
   white-space: nowrap;
 }
