@@ -168,7 +168,7 @@ test("keeps a full-image three-month daily verse pool with source links", async 
   const profileLinks = page.match(
     /"https:\/\/www\.xiaohongshu\.com\/user\/profile\/652012110000000024014637\//g,
   );
-  const pool = page.match(/const dailyLines = \[([\s\S]*?)\n\];/)?.[1];
+  const pool = page.replace(/\r\n/g, "\n").match(/const dailyLines = \[([\s\S]*?)\n\];/)?.[1];
   const entries = pool?.match(/\n  \{\n    text:/g);
   const additionalEntries = additional.match(/\n  \{ text:/g);
 
@@ -196,7 +196,7 @@ test("time-boxes explicit seasonal daily lines for Shenzhen", async () => {
   assert.match(page, /function shenzhenSeasonFor\(date: Date\)/);
   assert.match(page, /month >= 9 && month <= 11/);
   assert.match(page, /function seasonForDailyLine/);
-  assert.match(page, /lineSeason === null \|\| lineSeason === season/);
+  assert.match(page, /createDailyVersePicker\(dailyLines, shenzhenSeasonFor, seasonForDailyLine\)/);
   assert.match(page, /深圳\{seasonMeta\[currentSeason\]\.label\}筛选/);
   assert.ok(page.includes("keywords: /夏|六月|七月|八月|炎热|冰激凌/"));
   assert.match(page, /秋天\|秋日\|初秋\|深秋/);

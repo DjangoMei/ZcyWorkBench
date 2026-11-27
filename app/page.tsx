@@ -18,6 +18,8 @@ import {
 } from "../lib/cleanup.mjs";
 import { withBasePath } from "./base-path";
 import { additionalDailyLines } from "./additional-daily-lines";
+import { createDailyVersePicker } from "../lib/daily-verse.mjs";
+import { applyInspirationEdit } from "../lib/inspiration-edit.mjs";
 
 type Section =
   | "today"
@@ -123,6 +125,7 @@ type Inspiration = {
   imagePath: string;
   imageName: string;
   createdAt: string;
+  updatedAt?: string;
 };
 
 type WorkbenchData = {
@@ -496,7 +499,7 @@ const seasonMeta: Record<
 };
 
 function shenzhenSeasonFor(date: Date): ShenzhenSeason {
-  const month = date.getMonth() + 1;
+  const month = date.getUTCMonth() + 1;
   if (month >= 2 && month <= 4) return "spring";
   if (month >= 5 && month <= 8) return "summer";
   if (month >= 9 && month <= 11) return "autumn";
@@ -519,21 +522,7 @@ function seasonForDailyLine(
   );
 }
 
-function dailyLineFor(date: Date) {
-  const season = shenzhenSeasonFor(date);
-  const seasonSafePool = dailyLines.filter((line) => {
-    const lineSeason = seasonForDailyLine(line);
-    return lineSeason === null || lineSeason === season;
-  });
-  const dayNumber = Math.floor(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000,
-  );
-
-  return {
-    season,
-    quote: seasonSafePool[dayNumber % seasonSafePool.length],
-  };
-}
+const dailyLineFor = createDailyVersePicker(dailyLines, shenzhenSeasonFor, seasonForDailyLine);
 
 const uid = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -891,6 +880,7 @@ export default function Home() {
     InspirationCategory | "全部"
   >("全部");
   const [inspirationBusy, setInspirationBusy] = useState(false);
+  const [inspirationDraft, setInspirationDraft] = useState<Inspiration | null>(null);
   const [newMusicInputKey, setNewMusicInputKey] = useState<string | null>(null);
   const [editingRecord, setEditingRecord] = useState<{
     kind:
@@ -1807,6 +1797,42 @@ export default function Home() {
     setToast("生日已记录");
   };
 
+  const uploadInspirationImage = async (image: File) => {
+    if (storageBackend === "browser") {
+      throw new Error("浏览器存储模式暂不支持图片上传。");
+    }
+    const targetPath = remoteImagePath(image.name);
+    const response =
+      storageBackend === "cloud"
+        ? await fetch(cloudFileUrl(targetPath), {
+            method: "PUT",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": image.type || "application/octet-stream",
+            },
+            body: image,
+          })
+        : await fetch(
+            `${LOCAL_API}/api/upload?name=${encodeURIComponent(image.name)}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": image.type || "application/octet-stream",
+              },
+              body: image,
+            },
+          );
+    if (!response.ok) throw new Error("图片保存失败");
+    const result = (await response.json()) as {
+      path?: string;
+      name?: string;
+      key?: string;
+    };
+    const imagePath = result.key || result.path || targetPath;
+    const imageName = result.name || image.name;
+    return { imagePath, imageName };
+  };
+
   const addInspiration = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formElement = event.currentTarget;
@@ -1821,38 +1847,7 @@ export default function Home() {
     let imageName = "";
     try {
       if (image instanceof File && image.size) {
-        if (storageBackend === "browser") {
-          throw new Error("浏览器存储模式暂不支持图片上传。");
-        }
-        const targetPath = remoteImagePath(image.name);
-        const response =
-          storageBackend === "cloud"
-            ? await fetch(cloudFileUrl(targetPath), {
-                method: "PUT",
-                credentials: "same-origin",
-                headers: {
-                  "Content-Type": image.type || "application/octet-stream",
-                },
-                body: image,
-              })
-            : await fetch(
-                `${LOCAL_API}/api/upload?name=${encodeURIComponent(image.name)}`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": image.type || "application/octet-stream",
-                  },
-                  body: image,
-                },
-              );
-        if (!response.ok) throw new Error("图片保存失败");
-        const result = (await response.json()) as {
-          path?: string;
-          name?: string;
-          key?: string;
-        };
-        imagePath = result.key || result.path || targetPath;
-        imageName = result.name || image.name;
+        ({ imagePath, imageName } = await uploadInspirationImage(image));
       }
 
       setData((current) => ({
@@ -1876,6 +1871,47 @@ export default function Home() {
       setToast("灵感已收进个人资料库");
     } catch (error) {
       setToast(error instanceof Error ? error.message : "保存失败");
+    } finally {
+      setInspirationBusy(false);
+    }
+  };
+
+  const saveEditedInspiration = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!inspirationDraft || inspirationBusy) return;
+    const draft = { ...inspirationDraft };
+    const form = new FormData(event.currentTarget);
+    const image = form.get("image");
+    const rawLink = draft.link.trim();
+    const link = safeUrl(rawLink);
+    if (rawLink && !link) {
+      setToast("链接格式不正确，请使用 http 或 https 链接");
+      return;
+    }
+    if (!draft.content.trim() && !link && !draft.imagePath && !(image instanceof File && image.size)) {
+      setToast("请至少保留文字、链接或一张图片");
+      return;
+    }
+    setInspirationBusy(true);
+    try {
+      const attachment = image instanceof File && image.size
+        ? await uploadInspirationImage(image)
+        : { imagePath: draft.imagePath, imageName: draft.imageName };
+      const updatedAt = new Date().toISOString();
+      setData(current => ({
+        ...current,
+        inspirations: current.inspirations.map(item =>
+          item.id === draft.id
+            ? applyInspirationEdit(item, { ...draft, ...attachment, link }, updatedAt)
+            : item),
+      }));
+      setInspirationDraft(null);
+      if (inspirationFilter !== "全部" && inspirationFilter !== draft.category) {
+        setInspirationFilter(draft.category);
+      }
+      setToast("灵感已更新，原始记录时间已保留");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "保存失败，请重试");
     } finally {
       setInspirationBusy(false);
     }
@@ -3896,7 +3932,7 @@ export default function Home() {
                 <div>
                   <span className="section-label">IDEA FRAGMENTS</span>
                   <h1>灵感碎片</h1>
-                  <p>按分类留下文字、图片和链接，随时导出给 AI 继续整理。</p>
+                  <p>按分类留下文字、图片和链接，保存后也能编辑，随时导出给 AI 继续整理。</p>
                 </div>
                 <div className="page-actions">
                   <button onClick={() => exportInspirations("markdown")}>导出 Markdown</button>
@@ -3932,6 +3968,53 @@ export default function Home() {
                     className={`inspiration-note ${categoryMeta[item.category].color}`}
                     key={item.id}
                   >
+                    {inspirationDraft?.id === item.id ? (
+                      <form className="inspiration-edit-form" onSubmit={saveEditedInspiration}>
+                        <div className="inspiration-edit-heading">
+                          <strong>编辑灵感</strong>
+                          <small>记录于 {formatDateTime(item.createdAt)}</small>
+                        </div>
+                        <fieldset disabled={inspirationBusy}>
+                          <label>分类
+                            <select value={inspirationDraft.category}
+                              onChange={event => setInspirationDraft({ ...inspirationDraft, category: event.target.value as InspirationCategory })}>
+                              {(Object.keys(categoryMeta) as InspirationCategory[]).map(category => (
+                                <option key={category} value={category}>{category} · {categoryMeta[category].subtitle}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label>灵感内容
+                            <textarea rows={5} value={inspirationDraft.content}
+                              onChange={event => setInspirationDraft({ ...inspirationDraft, content: event.target.value })} />
+                          </label>
+                          <label>标签
+                            <input value={inspirationDraft.tag} placeholder="标签（可选）"
+                              onChange={event => setInspirationDraft({ ...inspirationDraft, tag: event.target.value })} />
+                          </label>
+                          <label>链接
+                            <input inputMode="url" value={inspirationDraft.link} placeholder="粘贴链接（可选）"
+                              onChange={event => setInspirationDraft({ ...inspirationDraft, link: event.target.value })} />
+                          </label>
+                          {inspirationDraft.imagePath && (
+                            <div className="inspiration-edit-image">
+                              <img src={storageBackend === "cloud" ? cloudFileUrl(inspirationDraft.imagePath) : localFileUrl(inspirationDraft.imagePath)}
+                                alt={inspirationDraft.imageName || "当前图片"} />
+                              <button type="button" onClick={() => setInspirationDraft({ ...inspirationDraft, imagePath: "", imageName: "" })}>移除当前图片</button>
+                            </div>
+                          )}
+                          <label className="inspiration-image-picker">
+                            {inspirationDraft.imagePath ? "替换图片" : "添加图片"}
+                            <input name="image" type="file" accept="image/*" />
+                          </label>
+                          <small className="inspiration-edit-hint">不选新图片会保留当前图片，取消不会修改原记录。</small>
+                          <div className="inspiration-edit-actions">
+                            <button type="button" onClick={() => setInspirationDraft(null)}>取消</button>
+                            <button type="submit" className="primary-button">{inspirationBusy ? "正在保存…" : "保存修改"}</button>
+                          </div>
+                        </fieldset>
+                      </form>
+                    ) : (
+                      <>
                     {item.imagePath && (
                       <img
                         src={
@@ -3954,8 +4037,15 @@ export default function Home() {
                     )}
                     <footer>
                       <span>{item.tag ? `# ${item.tag}` : categoryMeta[item.category].subtitle}</span>
-                      <button onClick={() => removeById("inspirations", item.id)}>×</button>
+                      <div className="inspiration-note-actions">
+                        <button type="button" className="edit-inspiration-button" disabled={inspirationBusy}
+                          onClick={() => setInspirationDraft({ ...item })}>编辑</button>
+                        <button type="button" aria-label="删除灵感" disabled={inspirationBusy}
+                          onClick={() => removeById("inspirations", item.id)}>×</button>
+                      </div>
                     </footer>
+                      </>
+                    )}
                   </article>
                 ))}
               </div>
